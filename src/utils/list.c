@@ -1,6 +1,6 @@
 #include "list.h"
 
-void nshList_destroyList(List lst) {
+void rootshList_destroyList(List lst) {
     while (lst != NULL) {
         List tmp = lst;
         lst = lst->next;
@@ -9,7 +9,7 @@ void nshList_destroyList(List lst) {
     return;
 }
 
-void nshList_destroyAll(List lst) {
+void rootshList_destroyAll(List lst) {
     while (lst != NULL) {
         free(lst->v);
         List tmp = lst;
@@ -19,7 +19,7 @@ void nshList_destroyAll(List lst) {
     return;
 }
 
-List nshList_push(List lst, void* elem) {
+List rootshList_push(List lst, void* elem) {
     List add = (List)malloc(sizeof(struct s_list));
     add->next = NULL; add->v = elem;
 
@@ -31,7 +31,7 @@ List nshList_push(List lst, void* elem) {
     return lst;
 }
 
-void nshList_printListString(List lst) {
+void rootshList_printListString(List lst) {
     putchar('[');
     List tmp;
     for (tmp=lst; tmp->next != NULL; tmp=tmp->next) {

@@ -17,7 +17,7 @@ typedef struct s_list {
  * @short Free the `lst` list
  * @param lst       The list to free
  */
-void nshList_destroyList(List lst);
+void rootshList_destroyList(List lst);
 
 /**
  * Free the whole list `lst` and the value inside every cell of the list
@@ -25,7 +25,7 @@ void nshList_destroyList(List lst);
  * @short Free list cell and list values
  * @param lst       The list to free
  */
-void nshList_destroyAll(List lst);
+void rootshList_destroyAll(List lst);
 
 /**
  * Push the element `elem` at the end of the list `lst` by creating a new list cell
@@ -35,13 +35,13 @@ void nshList_destroyAll(List lst);
  * @param elem      The element to push in the list
  * @return A list with the new element in it
  */
-List nshList_push(List lst, void *elem);
+List rootshList_push(List lst, void *elem);
 
 /**
  * Print the list of char* `lst` 
  * 
  * @param lst   The list to print
  */
-void nshList_printListString(List lst);
+void rootshList_printListString(List lst);
 
 #endif

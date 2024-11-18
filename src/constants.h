@@ -1,7 +1,0 @@
-#ifndef NSH_CONSTANTS
-#define NSH_CONSTANTS
-
-#define NSH_MAX_ARG_LENGTH 100
-#define NSH_MAX_ERROR_LENGTH 256
-
-#endif
