@@ -1,12 +1,12 @@
 #ifndef ROOTSH_PARSEINPUT
 #define ROOTSH_PARSEINPUT
 
-//#include <string.h>
 //#include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
-#include "../utils/list.h"
-#include "../utils/constants.h"
-#include "../utils/error.h"
+#include "list.h"
+#include "constants.h"
+#include "error.h"
 
 #define ISREDIRECT(arg) \
     (strncmp((char *)arg->v, ">", ROOTSH_MAX_ARG_LENGTH) == 0) || \

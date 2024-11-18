@@ -1,13 +1,17 @@
-CC := gcc
-CFLAGS := -g -Wall -Werror -Wextra
-LIBS := 
-
-EXEC := main
-
 # make sure default action is compilation
 .PHONY: default  
 default : compile
 
+CC ?= gcc
+CFLAGS ?= -g -Wall -Werror -Wextra
+LIBS ?= 
+
+# 
+ifndef EXEC
+EXEC := ../rootsh.out
+else
+EXEC := ../$(EXEC)
+endif
 
 #################### Compile & run ####################
 

@@ -1,6 +1,7 @@
 # C object & executable
 *.o
 *[Mm]ain
+*.out
 
 # vscode
 .vscode/

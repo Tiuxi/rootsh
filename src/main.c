@@ -1,7 +1,8 @@
 #include <stdio.h>
-#include "cli/parseInput.h"
-#include "utils/list.h"
-#include "utils/error.h"
+#include <string.h>
+#include "parseInput.h"
+#include "list.h"
+#include "error.h"
 
 int main (int argc, char** argv) {
     // pass compilation
@@ -18,16 +19,16 @@ int main (int argc, char** argv) {
 
         if (c==10) {
             buffer[index] = '\0';
-
             List entry = rootshInput_splitInput(buffer);
-            rootshList_printListString(entry);
-            if (!rootshInput_checkRedirect(entry, error)) {
-                rootshError_print_error(error);
-            }
 
             if (!strcmp(((char*)(entry->v)),"quit")) {
                 running = 0;
                 break;
+            }
+
+            rootshList_printListString(entry);
+            if (!rootshInput_checkRedirect(entry, error)) {
+                rootshError_print_error(error);
             }
 
             rootshList_destroyAll(entry);
