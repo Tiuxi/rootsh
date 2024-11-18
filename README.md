@@ -17,7 +17,7 @@ Just started !
 
 - [x] Parse an input (with spaces) into an array  
 - [ ] Check user input  
-> - [o] Pipe error  
+> - [x] Pipe error  
 > - [ ] File error  
 > - [ ] Command error   
 
