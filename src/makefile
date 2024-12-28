@@ -4,11 +4,11 @@ default : compile
 
 CC ?= gcc
 CFLAGS ?= -g -Wall -Werror -Wextra
-LIBS ?= 
+LIBS ?= -lncursesw
 
 # 
 ifndef EXEC
-EXEC := ../rootsh.out
+EXEC := ./main
 else
 EXEC := ../$(EXEC)
 endif
