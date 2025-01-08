@@ -9,6 +9,12 @@ void rootshList_destroyList(List lst) {
     return;
 }
 
+List rootshList_destroyElem(List lst) {
+    List next = lst->next;
+    free(lst);
+    return next;
+}
+
 void rootshList_destroyAll(List lst) {
     while (lst != NULL) {
         free(lst->v);

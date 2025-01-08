@@ -11,6 +11,14 @@ typedef struct s_list {
 }*List;
 
 /**
+ * Free the current element of the list `lst` and return the next one
+ * 
+ * @param lst   The element to free
+ * @returns The next element
+ */
+List rootshList_destroyElem(List lst);
+
+/**
  * Free the whole list `lst`.
  * Please note that it will not free the value, for this you want to use `destroyAll`
  *
