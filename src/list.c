@@ -1,5 +1,9 @@
 #include "list.h"
 
+List rootshList_new(void* elem) {
+    return rootshList_push(NULL, elem);
+}
+
 void rootshList_destroyList(List lst) {
     while (lst != NULL) {
         List tmp = lst;

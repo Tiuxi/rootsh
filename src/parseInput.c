@@ -4,7 +4,7 @@ List rootshInput_splitInput(char* command) {
     int commandLength = strlen(command);
 
     char* s = (char*)malloc(sizeof(char) * ROOTSH_MAX_ARG_LENGTH);
-    List argList = rootshList_push(NULL, s);
+    List argList = rootshList_new(s);
     int currentIndex = 0;
 
     List n = argList;

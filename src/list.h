@@ -11,6 +11,14 @@ typedef struct s_list {
 }*List;
 
 /**
+ * Create a new `List` object with the element `elem` in the first position
+ * 
+ * @param elem The first element of the new list
+ * @returns An new `List` object
+ */
+List rootshList_new(void* elem);
+
+/**
  * Free the current element of the list `lst` and return the next one
  * 
  * @param lst   The element to free
