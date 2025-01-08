@@ -14,11 +14,12 @@
     (strncmp((char *)arg->v, ">>", ROOTSH_MAX_ARG_LENGTH) == 0)
 
 /**
- * Split a string into an array of string by separating at every spaces
+ * Split a string into an list of every command by separating at every pipe.
+ * Each command is a list of char separated by spaces
  *
  * @short Split a string into an array
  * @param command       The string to split
- * @return An array of string without spaces
+ * @return The list of commands
  */
 List rootshInput_splitInput(char *command);
 

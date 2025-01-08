@@ -19,6 +19,20 @@ List rootshList_destroyElem(List lst) {
     return next;
 }
 
+void rootshList_destroy2DList(List list2D) {
+    while (list2D != NULL) {
+        rootshList_destroyList(list2D->v);
+        list2D = rootshList_destroyElem(list2D);
+    }
+}
+
+void rootshList_destroy2DListAll(List list2D) {
+    while (list2D != NULL) {
+        rootshList_destroyAll(list2D->v);
+        list2D = rootshList_destroyElem(list2D);
+    }
+}
+
 void rootshList_destroyAll(List lst) {
     while (lst != NULL) {
         free(lst->v);
@@ -38,6 +52,25 @@ List rootshList_push(List lst, void* elem) {
     List tmp = lst;
     while(tmp->next != NULL) tmp = tmp->next;
     tmp->next = add;
+    return lst;
+}
+
+List rootshList_popDestroyValue(List lst, int destroy) {
+    List tmp = lst;
+    
+    if (tmp->next == NULL) {
+        return rootshList_destroyElem(tmp);
+    }
+
+    while (tmp->next->next != NULL) tmp = tmp->next;
+
+    if (destroy == 1) {
+        free(tmp->next->v);
+        tmp->next = rootshList_destroyElem(tmp->next);
+    }else {
+        tmp->next = rootshList_destroyElem(tmp->next);
+    }
+    
     return lst;
 }
 

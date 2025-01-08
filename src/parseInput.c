@@ -4,11 +4,31 @@ List rootshInput_splitInput(char* command) {
     int commandLength = strlen(command);
 
     char* s = (char*)malloc(sizeof(char) * ROOTSH_MAX_ARG_LENGTH);
-    List argList = rootshList_new(s);
-    int currentIndex = 0;
+    List argList = rootshList_new(s); // list with current command arguments
+    List commandList = rootshList_new(argList); // list with every command
+    List n = argList; // list element of current argument
 
-    List n = argList;
+    int currentIndex = 0;
     for (int i=0; i<commandLength; i++) {
+
+        // if pipe, separate in a new command
+        if (currentIndex == 0 && command[i] == '|') {
+            if (currentIndex == 0) {
+                rootshList_pop(argList);
+            }else {
+                ((char *)(n->v))[currentIndex] = '\0';
+                currentIndex = 0;
+            }
+
+            s = (char*)malloc(sizeof(char) * ROOTSH_MAX_ARG_LENGTH);
+            argList = rootshList_new(s);
+            commandList = rootshList_push(commandList, argList);
+            n = argList;
+
+            while (i < commandLength && (command[i] == '|' || command[i] == ' ')){
+                i++;
+            }
+        }
         
         // slice by spaces
         if (command[i] == ' ') {
@@ -21,7 +41,7 @@ List rootshInput_splitInput(char* command) {
 
         // else put the char at the end of the string
         else {
-            if (currentIndex != ROOTSH_MAX_ARG_LENGTH-1) {
+            if (currentIndex < ROOTSH_MAX_ARG_LENGTH-1) {
                 ((char *)(n->v))[currentIndex] = command[i]; // copy every char
                 currentIndex++;
             }
@@ -29,7 +49,7 @@ List rootshInput_splitInput(char* command) {
     }
     ((char*)(n->v))[currentIndex] = '\0';
 
-    return argList;
+    return commandList;
 }
 
 int rootshInput_checkRedirect(List command, Error error) {

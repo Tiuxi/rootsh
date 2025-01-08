@@ -19,21 +19,25 @@ int main (int argc, char** argv) {
 
         if (c==10) {
             buffer[index] = '\0';
-            List entry = rootshInput_splitInput(buffer);
+            List commands = rootshInput_splitInput(buffer);
 
-            if (!strcmp(((char*)(entry->v)),"quit")) {
-                running = 0;
-                break;
+            for (List command=commands; command!=NULL; command=command->next) {
+                List entry = command->v;
+
+                if (!strcmp(((char*)(entry->v)),"quit")) {
+                    running = 0;
+                    break;
+                }
+
+                rootshList_printListString(entry);
+                if (!rootshInput_checkRedirect(entry, error)) {
+                    rootshError_print_error(error);
+                }
+
+                index = 0;
             }
 
-            rootshList_printListString(entry);
-            if (!rootshInput_checkRedirect(entry, error)) {
-                rootshError_print_error(error);
-            }
-
-            rootshList_destroyAll(entry);
-
-            index = 0;
+            rootshList_destroy2DListAll(commands);
         }else {
             buffer[index] = c;
             index++;
