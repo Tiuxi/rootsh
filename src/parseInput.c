@@ -81,9 +81,3 @@ int rootshInput_checkRedirect(List command, Error error) {
 
     return 1;
 }
-
-int rootshInput_isFile(List command) {
-    return (((char *)command->v)[0] == '/' ||
-            ((char *)command->v)[0] == '~' ||
-            ((char *)command->v)[0] == '.');
-}

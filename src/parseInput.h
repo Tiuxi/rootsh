@@ -13,6 +13,11 @@
     (strncmp((char *)arg->v, "<", ROOTSH_MAX_ARG_LENGTH) == 0) || \
     (strncmp((char *)arg->v, ">>", ROOTSH_MAX_ARG_LENGTH) == 0)
 
+#define ISFILE(command) \
+    (((char *)command->v)[0] == '/' || \
+    ((char *)command->v)[0] == '~' || \
+    ((char *)command->v)[0] == '.')
+
 /**
  * Split a string into an list of every command by separating at every pipe.
  * Each command is a list of char separated by spaces
