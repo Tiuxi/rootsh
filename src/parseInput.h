@@ -8,11 +8,26 @@
 #include "constants.h"
 #include "error.h"
 
+/**
+ * <    : redirect stdin
+ * >    : redirect stdout
+ * >+   : redirect stdout (append mode)
+ * >>   : redirect stderr 
+ * >>+  : redirect stderr (append mode)
+ */
 #define ISREDIRECT(arg) \
-    (strncmp((char *)arg->v, ">", ROOTSH_MAX_ARG_LENGTH) == 0) || \
+    (strncmp((char *)arg->v, ">", ROOTSH_MAX_ARG_LENGTH) == 0) || \ 
     (strncmp((char *)arg->v, "<", ROOTSH_MAX_ARG_LENGTH) == 0) || \
-    (strncmp((char *)arg->v, ">>", ROOTSH_MAX_ARG_LENGTH) == 0)
+    (strncmp((char *)arg->v, ">>", ROOTSH_MAX_ARG_LENGTH) == 0) || \
+    (strncmp((char *)arg->v, ">+", ROOTSH_MAX_ARG_LENGTH) == 0) || \
+    (strncmp((char *)arg->v, ">>+", ROOTSH_MAX_ARG_LENGTH) == 0)
 
+/**
+ * /  : root directory
+ * .  : current directory
+ * .. : parrent directory
+ * ~  : home directory
+ */
 #define ISFILE(command) \
     (((char *)command->v)[0] == '/' || \
     ((char *)command->v)[0] == '~' || \

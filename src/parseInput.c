@@ -57,7 +57,7 @@ int rootshInput_checkRedirect(List command, Error error) {
 
     // if redirection before command, raise error
     if (ISREDIRECT(tmp)) {
-        rootshError_set_error_with_argument(error, "Syntax error : redirection before command", tmp->v);
+        rootshError_set_error_with_argument(error, "Redirection is made before command", tmp->v);
         return 0;
     }
 
@@ -68,7 +68,7 @@ int rootshInput_checkRedirect(List command, Error error) {
 
             // if there is nothing after, raise error
             if (tmp->next == NULL) {
-                rootshError_set_error_with_argument(error, "Syntax error : no file specified for redirection", tmp->v);
+                rootshError_set_error_with_argument(error, "No file specified for redirection", tmp->v);
                 return 0;
             }
 
