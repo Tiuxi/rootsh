@@ -30,7 +30,7 @@ int main (int argc, char** argv) {
                 }
 
                 rootshList_printListString(entry);
-                if (!rootshInput_checkRedirect(entry, error)) {
+                if (rootshInput_checkRedirect(entry, error) == -1) {
                     rootshError_print_error(error);
                 }
 

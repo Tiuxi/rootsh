@@ -1,26 +1,41 @@
 #ifndef ROOTSH_PARSEINPUT
 #define ROOTSH_PARSEINPUT
 
-//#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include "list.h"
 #include "constants.h"
 #include "error.h"
 
-/**
- * <    : redirect stdin
- * >    : redirect stdout
- * >+   : redirect stdout (append mode)
- * >>   : redirect stderr 
- * >>+  : redirect stderr (append mode)
+
+
+    /************************ MACROS ************************/
+
+
+/** 
+ * REDIRECTIONS :
+ * 
+ * <   : stdin
+ * >   : stdout
+ * >+  : stdout (append mode)
+ * >>  : stderr
+ * >>+ : stderr (append mode)
  */
-#define ISREDIRECT(arg) \
-    (strncmp((char *)arg->v, ">", ROOTSH_MAX_ARG_LENGTH) == 0) || \ 
-    (strncmp((char *)arg->v, "<", ROOTSH_MAX_ARG_LENGTH) == 0) || \
+
+#define ISSTDIN(arg) \
+    (strncmp((char *)arg->v, "<", ROOTSH_MAX_ARG_LENGTH) == 0)
+
+#define ISSTDOUT(arg) \
+    (strncmp((char *)arg->v, ">", ROOTSH_MAX_ARG_LENGTH) == 0) || \
+    (strncmp((char *)arg->v, ">+", ROOTSH_MAX_ARG_LENGTH) == 0)
+
+#define ISSTDERR(arg) \
     (strncmp((char *)arg->v, ">>", ROOTSH_MAX_ARG_LENGTH) == 0) || \
-    (strncmp((char *)arg->v, ">+", ROOTSH_MAX_ARG_LENGTH) == 0) || \
-    (strncmp((char *)arg->v, ">>+", ROOTSH_MAX_ARG_LENGTH) == 0)
+    (strncmp((char *)arg->v, ">>+", ROOTSH_MAX_ARG_LENGTH) == 0) \
+
+#define ISREDIRECT(arg) \
+    ISSTDERR(arg) || ISSTDOUT(arg) || ISSTDIN(arg)
+
 
 /**
  * /  : root directory
@@ -32,6 +47,11 @@
     (((char *)command->v)[0] == '/' || \
     ((char *)command->v)[0] == '~' || \
     ((char *)command->v)[0] == '.')
+
+
+
+    /************************ FUNCTIONS ************************/
+
 
 /**
  * Split a string into an list of every command by separating at every pipe.
@@ -51,13 +71,5 @@ List rootshInput_splitInput(char *command);
  * @return 1 if the command is correctly redirected, 0 else
  */
 int rootshInput_checkRedirect(List command, Error error);
-
-/**
- * Check if the command sent is a file (start with `~`, `.` or `/`)
- * 
- * @param command       The command parsed into a list
- * @return 1 if the command is a file, 0 else
- */
-int rootshInput_isFile(List command);
 
 #endif

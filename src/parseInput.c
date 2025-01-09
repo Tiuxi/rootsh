@@ -58,26 +58,45 @@ int rootshInput_checkRedirect(List command, Error error) {
     // if redirection before command, raise error
     if (ISREDIRECT(tmp)) {
         rootshError_set_error_with_argument(error, "Redirection is made before command", tmp->v);
-        return 0;
+        return -1;
     }
+
+    int redirections[3] = {0, 0, 0};
 
     for (tmp=command; tmp!=NULL; tmp=tmp->next) {
 
         // is a redirection
         if (ISREDIRECT(tmp)) {
 
-            // if there is nothing after, raise error
-            if (tmp->next == NULL) {
+            // if there is nothing after or another redirection, raise error
+            if (tmp->next == NULL || ISREDIRECT(tmp->next)) {
                 rootshError_set_error_with_argument(error, "No file specified for redirection", tmp->v);
-                return 0;
+                return -1;
             }
 
-            // if there is another redirection right after, raise error
-
-            // if redirection already exist, raise error
+            // check type of redirection, and make sure there's not the same redirection more than once
+            if (ISSTDIN(tmp)) {
+                if (redirections[0] != 0) {
+                    rootshError_set_error_with_argument(error, "Redirecting the stream STDIN more than once", tmp->v);
+                    return -1;
+                }
+                redirections[0]++;
+            } else if (ISSTDOUT(tmp)) {
+                if (redirections[1] != 0) {
+                    rootshError_set_error_with_argument(error, "Redirecting the stream STDOUT more than once", tmp->v);
+                    return -1;
+                }
+                redirections[1]++;
+            } else if (ISSTDERR(tmp)) {
+                if (redirections[2] != 0) {
+                    rootshError_set_error_with_argument(error, "Redirecting the stream STDERR more than once", tmp->v);
+                    return -1;
+                }
+                redirections[2]++;
+            }
 
         }
     }
 
-    return 1;
+    return 0;
 }
