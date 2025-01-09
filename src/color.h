@@ -35,4 +35,8 @@ Base color:
 9:  Stroke
 */
 
+#define COLOR_BASE "\033[0;38"
+
+#define COLOR_REDBOLD "\033[1;31"
+
 #endif
