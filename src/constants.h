@@ -9,7 +9,7 @@
 // Syscall checks
 #include <stdio.h>
 
-#define CHECK(op)           \
+#define ASSERT(op)           \
     if(op == -1) {          \
         fprintf(stderr, "Error: line %d, file \"%s\"\n", __LINE__, __FILE__);   \
         fflush(stderr);     \
