@@ -2,6 +2,9 @@
 #define ROOTSH_EXECCOMMAND
 
 #include <stdio.h>
+#include <string.h>
+#include <linux/limits.h>
+#include "constants.h"
 #include "parseInput.h"
 #include "list.h"
 #include "error.h"

@@ -3,6 +3,7 @@
 #include "parseInput.h"
 #include "list.h"
 #include "error.h"
+#include "execCommand.h"
 
 int main (int argc, char** argv) {
     // pass compilation
@@ -19,7 +20,8 @@ int main (int argc, char** argv) {
 
         if (c==10) {
             buffer[index] = '\0';
-            List commands = rootshInput_splitInput(buffer);
+            rootshExec_execute_command(buffer);
+            /* List commands = rootshInput_splitInput(buffer);
 
             for (List command=commands; command!=NULL; command=command->next) {
                 List entry = command->v;
@@ -29,7 +31,8 @@ int main (int argc, char** argv) {
                     break;
                 }
 
-                rootshList_printListString(entry);
+                rootshExec_execute_command(entry);
+                //rootshList_printListString(entry);
                 if (rootshInput_checkRedirect(entry, error) == -1) {
                     rootshError_print_error(error);
                 }
@@ -37,7 +40,7 @@ int main (int argc, char** argv) {
                 index = 0;
             }
 
-            rootshList_destroy2DListAll(commands);
+            rootshList_destroy2DListAll(commands); */
         }else {
             buffer[index] = c;
             index++;

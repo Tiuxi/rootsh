@@ -3,8 +3,7 @@
 
 #define ROOTSH_MAX_ARG_LENGTH 100
 #define ROOTSH_MAX_ERROR_LENGTH 256
-
-
+#define PATHVAR "PATH"
 
 // Syscall checks
 #include <stdio.h>
