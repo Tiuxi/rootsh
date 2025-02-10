@@ -1,7 +1,6 @@
 #include <stdio.h>
-#include <string.h>
+#include "constants.h"
 #include "parseInput.h"
-#include "list.h"
 #include "error.h"
 #include "execCommand.h"
 
@@ -11,7 +10,7 @@ int main (int argc, char** argv) {
     (void) argv;
 
     int running = 1;
-    char buffer[100];
+    char buffer[ROOTSH_MAX_COMMAND_LENGTH];
     int index = 0;
     Error error = rootshError_new_error();
 
