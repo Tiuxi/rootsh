@@ -19,28 +19,11 @@ int main (int argc, char** argv) {
         char c = getchar();
 
         if (c==10) {
+            
             buffer[index] = '\0';
             rootshExec_execute_command(buffer);
-            /* List commands = rootshInput_splitInput(buffer);
+            index=0;
 
-            for (List command=commands; command!=NULL; command=command->next) {
-                List entry = command->v;
-
-                if (!strcmp(((char*)(entry->v)),"quit")) {
-                    running = 0;
-                    break;
-                }
-
-                rootshExec_execute_command(entry);
-                //rootshList_printListString(entry);
-                if (rootshInput_checkRedirect(entry, error) == -1) {
-                    rootshError_print_error(error);
-                }
-
-                index = 0;
-            }
-
-            rootshList_destroy2DListAll(commands); */
         }else {
             buffer[index] = c;
             index++;
