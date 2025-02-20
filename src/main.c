@@ -1,8 +1,8 @@
 #include <stdio.h>
-#include <string.h>
+#include "constants.h"
 #include "parseInput.h"
-#include "list.h"
 #include "error.h"
+#include "execCommand.h"
 
 int main (int argc, char** argv) {
     // pass compilation
@@ -10,7 +10,7 @@ int main (int argc, char** argv) {
     (void) argv;
 
     int running = 1;
-    char buffer[100];
+    char buffer[ROOTSH_MAX_COMMAND_LENGTH];
     int index = 0;
     Error error = rootshError_new_error();
 
@@ -18,26 +18,11 @@ int main (int argc, char** argv) {
         char c = getchar();
 
         if (c==10) {
+            
             buffer[index] = '\0';
-            List commands = rootshInput_splitInput(buffer);
+            rootshExec_execute_command(buffer);
+            index=0;
 
-            for (List command=commands; command!=NULL; command=command->next) {
-                List entry = command->v;
-
-                if (!strcmp(((char*)(entry->v)),"quit")) {
-                    running = 0;
-                    break;
-                }
-
-                rootshList_printListString(entry);
-                if (rootshInput_checkRedirect(entry, error) == -1) {
-                    rootshError_print_error(error);
-                }
-
-                index = 0;
-            }
-
-            rootshList_destroy2DListAll(commands);
         }else {
             buffer[index] = c;
             index++;
