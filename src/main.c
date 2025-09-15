@@ -1,19 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "utils/constants.h"
-#include "input/parseInput.h"
 #include "utils/error.h"
-#include "exec/execCommand.h"
 #include "hist/history.h"
+#include "input/keyboardHandler.h"
 
 int main (int argc, char** argv) {
     // pass compilation
     (void) argc;
     (void) argv;
-
-    int running = 1;
-    char buffer[PLUSH_BASE_COMMAND_LENGTH];
-    int index = 0;
 
     // history
     plushHistory_check_dir();
@@ -24,43 +18,12 @@ int main (int argc, char** argv) {
     atexit(plushHistory_destroy_history);
     atexit(plushHistory_save_to_file);
 
-    putchar('$'); putchar(' ');
-    while (running) {
-        char c = getchar();
+    // raw mode
+    plushKH_enable_raw_mode();
+    atexit(plushKH_disable_raw_mode);
 
-        switch (c) {
+    // enter main loop
+    int return_code = plushKH_main_loop();
 
-        // "RETURN"
-        case KEY_RETURN:
-
-            // if command is empty, skip
-            if (index!=0) {
-                buffer[index] = '\0';
-                if (strncmp(buffer, "exit", PLUSH_BASE_COMMAND_LENGTH) == 0)
-                    running = FALSE;
-                else {
-                    plushHistory_add_command(buffer);
-                    plushExec_execute_command(buffer);
-                }
-                index = 0;
-            }
-            putchar('$'); putchar(' ');
-
-            break;
-        
-        // ctrl + d
-        case EOF:
-            running = FALSE;
-            if(write(STDOUT_FILENO, "\nexiting\n", 10)){;}
-            break;
-        
-
-        default:
-            buffer[index] = c;
-            index++;
-            break;
-        }
-    }
-
-    return 0;
+    return return_code;
 }

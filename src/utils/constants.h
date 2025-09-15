@@ -1,6 +1,7 @@
 #ifndef PLUSH_CONSTANTS
 #define PLUSH_CONSTANTS
 
+// globals
 #define PLUSH_BASE_COMMAND_LENGTH 128
 #define PLUSH_MAX_ARG_LENGTH 100
 #define PLUSH_MAX_ERROR_LENGTH 256
@@ -9,9 +10,10 @@
 #define VAR_WORKINGDIR "PWD"
 #define VAR_HOME "HOME"
 
-#ifndef KEY_RETURN
-#define KEY_RETURN 10
-#endif
+// inputs globals
+#define KEY_RETURN '\n'
+#define ESCP_CHAR 27
+#define KEY_CR '\r'
 
 #ifndef TRUE
 #define TRUE 1
