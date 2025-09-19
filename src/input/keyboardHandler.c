@@ -55,12 +55,12 @@ int plushKH_main_loop() {
 
         switch (c) {
             // "RETURN"
-            case KEY_RETURN:
-            case KEY_CR:
+            case NL:
+            case CR:
+                write(STDOUT_FILENO, "\n", 1);
 
                 // if command is empty, skip
                 if (bufferIndex != 0) {
-                    write(STDOUT_FILENO, "\n", 1);
                     buffer[bufferIndex] = '\0';
                     if (strncmp(buffer, "exit", PLUSH_BASE_COMMAND_LENGTH) == 0)
                         RUNNING = FALSE;
@@ -70,20 +70,30 @@ int plushKH_main_loop() {
                     }
                     bufferIndex = 0;
                 }
+                
                 write(STDOUT_FILENO, "$ ", 2);
 
                 break;
 
             // ctrl + d
             case EOF:
+            case EOT:
                 RUNNING = FALSE;
                 if (write(STDOUT_FILENO, "\nexiting\n", 10)) {
                     ;
                 }
                 break;
 
+            // ctrl + c
+            case ETX:
+                break;
+
+            // ctrl + z
+            case SUB:
+                break;
+
             // escape sequence
-            case ESCP_CHAR:
+            case ESC:
                 c = plushKH_get_char();
 
                 switch(c) {
@@ -94,9 +104,13 @@ int plushKH_main_loop() {
                 break;
 
             default:
-                buffer[bufferIndex] = c;
-                bufferIndex++;
-                write(STDOUT_FILENO, &c, 1);
+                if (isprint(c)) {
+                    buffer[bufferIndex] = c;
+                    bufferIndex++;
+                    write(STDOUT_FILENO, &c, 1);
+                } else {
+                    printf("%o\n", c); // DEBUG ONLY
+                }
                 break;
         }
     }

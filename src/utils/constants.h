@@ -11,9 +11,15 @@
 #define VAR_HOME "HOME"
 
 // inputs globals
-#define KEY_RETURN '\n'
-#define ESCP_CHAR 27
-#define KEY_CR '\r'
+#define SOH 001 /* Start of Header      (ctrl + a)                                  */
+#define ETX 003 /* End Of Text          (ctrl + c)                                  */
+#define EOT 004 /* End Of Transmition   (ctrl + d)                                  */
+#define NL  012 /* New line             (ctrl + j or "return" in cooked mode)       */
+#define CR  015 /* Cariage return       (ctrl + m or "return" in raw mode)          */
+#define DC2 022 /* Device Control 2     (ctrl + r)                                  */
+#define NAK 025 /* Negative Acknowledge (ctrl + u)                                  */
+#define SUB 032 /* Substitue            (ctrl + z)                                  */
+#define ESC 033 /* Escape               (used in front of other chars)              */
 
 #ifndef TRUE
 #define TRUE 1

@@ -8,6 +8,7 @@
 #include <termio.h>
 #include <unistd.h>
 #include <string.h>
+#include <ctype.h>
 
 extern struct termios previous_config; /* save previous terminal config */
 extern char RUNNING;
