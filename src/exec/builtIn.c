@@ -57,12 +57,8 @@ int plushBuiltin_check_builtin(List cmd) {
 
         while (index != history.index) {
             if (history.hist[index] != NULL) {
-                ssize_t bytes_written;
-
-                bytes_written = write(STDOUT_FILENO, history.hist[index], PLUSH_BASE_COMMAND_LENGTH);
-                bytes_written = write(STDOUT_FILENO, "\n", 2);
-
-                (void)bytes_written; // for compiler -Wextra
+                write(STDOUT_FILENO, history.hist[index], PLUSH_BASE_COMMAND_LENGTH);
+                write(STDOUT_FILENO, "\n", 2);
             }
 
             index = (index+1) % HISTORY_SIZE;

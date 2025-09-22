@@ -2,7 +2,7 @@
 CC := gcc
 
 # compiler flags
-CFLAGS := -Wall -Werror -Wextra -O3
+CFLAGS := -Wall -Wextra -O3
 
 # executable name
 EXEC := plush

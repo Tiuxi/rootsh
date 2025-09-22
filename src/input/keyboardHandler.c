@@ -33,8 +33,8 @@ void plushKH_enable_raw_mode() {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
-char plushKH_get_char() {
-    char c;
+uchar plushKH_get_char() {
+    uchar c;
     while (!(read(STDIN_FILENO, &c, 1)>0));
     return c;
 }
@@ -51,68 +51,125 @@ int plushKH_main_loop() {
     write(STDOUT_FILENO, "$ ", 2);
 
     while (RUNNING) {
-        char c = plushKH_get_char();
+        uchar c = plushKH_get_char();
 
-        switch (c) {
-            // "RETURN"
-            case NL:
-            case CR:
-                write(STDOUT_FILENO, "\n", 1);
+        // printable char
+        if (isprint(c)) {
+            // cursor is not at the end
+            if (cursorIndex != bufferIndex)
+                for (uint i=bufferIndex+1; i>(uint)cursorIndex; i--)
+                    buffer[i] = buffer[i - 1];  // push every other char
 
-                // if command is empty, skip
-                if (bufferIndex != 0) {
-                    buffer[bufferIndex] = '\0';
-                    if (strncmp(buffer, "exit", PLUSH_BASE_COMMAND_LENGTH) == 0)
-                        RUNNING = FALSE;
-                    else {
-                        plushHistory_add_command(buffer);
-                        plushExec_execute_command(buffer);
+            buffer[cursorIndex] = c;
+            bufferIndex++;
+            cursorIndex++;
+            write(STDOUT_FILENO, &c, 1);
+        } 
+
+        // other char (control char mainly)
+        else {
+            switch (c) {
+                // "RETURN"
+                case NL:
+                case CR:
+                    write(STDOUT_FILENO, "\n", 1);
+
+                    // if command is empty, skip
+                    if (bufferIndex != 0) {
+                        buffer[bufferIndex] = '\0';
+                        if (strncmp(buffer, "exit", PLUSH_BASE_COMMAND_LENGTH) == 0)
+                            RUNNING = FALSE;
+                        else {
+                            plushHistory_add_command(buffer);
+                            plushExec_execute_command(buffer);
+                        }
+                        bufferIndex = cursorIndex = 0;
+                        memset(buffer, 0, sizeof buffer);
                     }
-                    bufferIndex = 0;
-                }
-                
-                write(STDOUT_FILENO, "$ ", 2);
 
-                break;
+                    write(STDOUT_FILENO, "$ ", 2);
 
-            // ctrl + d
-            case EOF:
-            case EOT:
-                RUNNING = FALSE;
-                if (write(STDOUT_FILENO, "\nexiting\n", 10)) {
-                    ;
-                }
-                break;
+                    break;
 
-            // ctrl + c
-            case ETX:
-                break;
+                // ctrl + d
+                case (uchar)EOF:
+                case EOT:
+                    RUNNING = FALSE;
+                    write(STDOUT_FILENO, "\nexiting\n", 10);
+                    break;
 
-            // ctrl + z
-            case SUB:
-                break;
+                // ctrl + c
+                case ETX:
+                    break;
 
-            // escape sequence
-            case ESC:
-                c = plushKH_get_char();
+                // ctrl + z
+                case SUB:
+                    break;
 
-                switch(c) {
-                    default:
+                // delete
+                case DEL:
+                    if (cursorIndex==0) break;
+                    for (uint i=cursorIndex-1; i < (uint)bufferIndex; i++)
+                        buffer[i] = buffer[i+1];  // push every other char
+                    
+                    cursorIndex--;
+                    bufferIndex--;
+
+                    // clear and rewrite after cursor
+                    write(STDOUT_FILENO, "\r\e[2K$ ", 7);
+                    write(STDOUT_FILENO, buffer, bufferIndex);
+                    
+                    // move cursor back
+                    char cursorOffset[15];
+                    if (cursorIndex!=bufferIndex) {
+                        snprintf(cursorOffset, 15, "\e[%dD", bufferIndex-cursorIndex);
+                        write(STDOUT_FILENO, cursorOffset, strlen(cursorOffset));
+                    }
+
+                    break;
+
+                // escape sequence
+                case ESC:
+                    c = plushKH_get_char();
+
+                    // arrow key
+                    if (c==91) {
+                        c = plushKH_get_char();
+                        switch (c) {
+                            case 65: // UP
+                                break;
+                            case 66: // DOWN
+                                break;
+
+                            case 67: // RIGHT
+                                if (cursorIndex<bufferIndex) {
+                                    cursorIndex++;
+                                    write(STDOUT_FILENO, "\e[1C", 4);
+                                }
+                                break;
+                            case 68: // LEFT
+                                if (cursorIndex>0) {
+                                    cursorIndex--;
+                                    write(STDOUT_FILENO, "\e[1D", 4);
+                                }
+                                break;
+                        }
+                    }
+                    
+                    // unknow sequence
+                    else {
                         printf("Sequence : %d\n", c);
-                }
+                    }
 
-                break;
+                    break;
 
-            default:
-                if (isprint(c)) {
-                    buffer[bufferIndex] = c;
-                    bufferIndex++;
-                    write(STDOUT_FILENO, &c, 1);
-                } else {
-                    printf("%o\n", c); // DEBUG ONLY
-                }
-                break;
+                default:
+                    printf("%d\n", c);  // DEBUG ONLY
+                    break;
+            }
         }
+
+        
     }
 
     return 0;

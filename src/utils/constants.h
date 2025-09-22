@@ -20,6 +20,7 @@
 #define NAK 025 /* Negative Acknowledge (ctrl + u)                                  */
 #define SUB 032 /* Substitue            (ctrl + z)                                  */
 #define ESC 033 /* Escape               (used in front of other chars)              */
+#define DEL 0177/* Delete               ("delete" key)                              */
 
 #ifndef TRUE
 #define TRUE 1
@@ -28,6 +29,9 @@
 #ifndef FALSE
 #define FALSE 0
 #endif
+
+typedef unsigned int uint;
+typedef unsigned char uchar;
 
 // Syscall checks
 #include <stdio.h>

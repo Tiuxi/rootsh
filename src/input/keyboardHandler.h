@@ -34,7 +34,7 @@ void plushKH_enable_raw_mode();
  * 
  * @return The char read
  */
-char plushKH_get_char();
+uchar plushKH_get_char();
 
 /**
  * Main loop of the shell. Reads character while "running" is true, and prints them.  
