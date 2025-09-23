@@ -112,8 +112,7 @@ int plushKH_main_loop() {
                     for (uint i=cursorIndex-1; i < (uint)bufferIndex; i++)
                         buffer[i] = buffer[i+1];  // push every other char
                     
-                    cursorIndex--;
-                    bufferIndex--;
+                    cursorIndex--; bufferIndex--;
 
                     // clear and rewrite after cursor
                     write(STDOUT_FILENO, "\r\e[2K$ ", 7);
@@ -132,27 +131,73 @@ int plushKH_main_loop() {
                 case ESC:
                     c = plushKH_get_char();
 
-                    // arrow key
-                    if (c==91) {
+                    // Control Sequence Introducer
+                    if (c=='[') {
                         c = plushKH_get_char();
-                        switch (c) {
-                            case 65: // UP
+                        
+                        // arg functions
+                        if (c >= '0' && c <= '9') {
+                            int arguments = 0;
+                            
+                            // get argument
+                            while (c != '~') {
+                                arguments = arguments * 10;
+                                arguments += c - '0';
+                                
+                                c = plushKH_get_char();
+                            }
+
+                            switch (arguments)
+                            {
+                            case 3: // delete
+
+                                if (cursorIndex == bufferIndex) break;
+                                for (uint i = cursorIndex; i < (uint)bufferIndex; i++)
+                                    buffer[i] = buffer[i + 1];  // push every other char
+
+                                bufferIndex--;
+
+                                // clear and rewrite after cursor
+                                write(STDOUT_FILENO, "\r\e[2K$ ", 7);
+                                write(STDOUT_FILENO, buffer, bufferIndex);
+
+                                // move cursor back
+                                char cursorOffset[15];
+                                if (cursorIndex != bufferIndex) {
+                                    snprintf(cursorOffset, 15, "\e[%dD", bufferIndex - cursorIndex);
+                                    write(STDOUT_FILENO, cursorOffset, strlen(cursorOffset));
+                                }
+
                                 break;
-                            case 66: // DOWN
+                            
+                            default:
+                                break;
+                            }
+
+                        }
+
+                        // no arg functions
+                        else switch (c) {
+                            case 'A': // UP
+                                break;
+                            case 'B': // DOWN
                                 break;
 
-                            case 67: // RIGHT
+                            case 'C': // RIGHT
                                 if (cursorIndex<bufferIndex) {
                                     cursorIndex++;
                                     write(STDOUT_FILENO, "\e[1C", 4);
                                 }
                                 break;
-                            case 68: // LEFT
+                            case 'D': // LEFT
                                 if (cursorIndex>0) {
                                     cursorIndex--;
                                     write(STDOUT_FILENO, "\e[1D", 4);
                                 }
                                 break;
+                            
+                            default:
+                                // printf(" :: %d\n", c);
                         }
                     }
                     
