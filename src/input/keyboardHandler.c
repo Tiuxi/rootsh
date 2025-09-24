@@ -44,6 +44,7 @@ int plushKH_main_loop() {
 
     // input buffer + cursor localisation
     char buffer[PLUSH_BASE_COMMAND_LENGTH];
+    memset(buffer, 0, PLUSH_BASE_COMMAND_LENGTH);
     int bufferIndex = 0;
     int cursorIndex = 0; (void)cursorIndex;
 
@@ -88,6 +89,7 @@ int plushKH_main_loop() {
                     }
 
                     write(STDOUT_FILENO, "$ ", 2);
+                    currentHistoryIndex = history.index;
 
                     break;
 
@@ -179,6 +181,22 @@ int plushKH_main_loop() {
                         // no arg functions
                         else switch (c) {
                             case 'A': // UP
+                                if (currentHistoryIndex == (int)((history.index + 1)%HISTORY_SIZE)) break;
+                                if (!history.hist[(currentHistoryIndex + HISTORY_SIZE - 1) % HISTORY_SIZE]) break;
+
+                                // if new command, save it for now
+                                if (currentHistoryIndex == history.index) {
+                                    memcpy(history.hist[history.index], buffer, bufferIndex);
+                                }
+                                // clear buffer
+                                memset(buffer, 0, bufferIndex+1);
+                                currentHistoryIndex = (currentHistoryIndex + HISTORY_SIZE - 1) % HISTORY_SIZE;
+                                memcpy(buffer, history.hist[currentHistoryIndex], strlen(history.hist[currentHistoryIndex]));
+                                cursorIndex = bufferIndex = strlen(buffer);
+
+                                write(STDOUT_FILENO, "\r\e[2K$ ", 7);
+                                write(STDOUT_FILENO, buffer, bufferIndex);
+
                                 break;
                             case 'B': // DOWN
                                 break;

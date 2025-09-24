@@ -32,6 +32,7 @@
 
 typedef unsigned int uint;
 typedef unsigned char uchar;
+typedef char bool;
 
 // Syscall checks
 #include <stdio.h>

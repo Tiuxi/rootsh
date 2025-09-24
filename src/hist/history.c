@@ -2,7 +2,8 @@
 
 History history;
 unsigned int HISTORY_SIZE = 2000;
-char isHistoryActivated=TRUE;
+bool isHistoryActivated=TRUE;
+int currentHistoryIndex = 0;
 
 void plushHistory_check_dir() {
 
@@ -45,6 +46,7 @@ void plushHistory_load_file() {
     history.hist = (char**)malloc(sizeof(char*) * HISTORY_SIZE);
     for (unsigned int i=0; i<HISTORY_SIZE; i++) history.hist[i] = NULL;
     history.hist[history.index] = (char*)calloc(PLUSH_BASE_COMMAND_LENGTH, sizeof(char));
+    memset(history.hist[history.index], 0, PLUSH_BASE_COMMAND_LENGTH);
 
     ssize_t bytes_reads, buff_size=64;
     char* buffer = (char*)malloc(sizeof(char) * buff_size);
@@ -62,6 +64,7 @@ void plushHistory_load_file() {
                 if (history.hist[history.index] != NULL)
                     free(history.hist[history.index]);
                 history.hist[history.index] = (char*)calloc(PLUSH_BASE_COMMAND_LENGTH, sizeof(char));
+                memset(history.hist[history.index], 0, PLUSH_BASE_COMMAND_LENGTH);
                 currentIndex = 0;
             } else if (currentIndex < PLUSH_BASE_COMMAND_LENGTH) {
                 history.hist[history.index][currentIndex] = buffer[i];
@@ -73,6 +76,8 @@ void plushHistory_load_file() {
     free(buffer);
     free(histFilePath);
     close(history.fd);
+
+    currentHistoryIndex = history.index;
 
     return;
 }
@@ -101,17 +106,15 @@ void plushHistory_add_command(const char* command) {
         return;
     }
 
-    int index=0;
-
-    while (command[index] != '\0' && index<PLUSH_BASE_COMMAND_LENGTH){
-        history.hist[history.index][index] = command[index];
-        index++;
-    }
+    int commandLenght = strlen(command);
+    memset(history.hist[history.index], 0, PLUSH_BASE_COMMAND_LENGTH);
+    memcpy(history.hist[history.index], command, commandLenght);
 
     history.index = (history.index+1) % HISTORY_SIZE;
     if (history.hist[history.index] != NULL)
         free(history.hist[history.index]);
     history.hist[history.index] = (char*)calloc(PLUSH_BASE_COMMAND_LENGTH, sizeof(char));
+    memset(history.hist[history.index], 0, PLUSH_BASE_COMMAND_LENGTH);
 
     return;
 }

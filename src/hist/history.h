@@ -56,6 +56,7 @@ typedef struct s_hist {
 
 extern History history; /* history global variable */
 extern unsigned int HISTORY_SIZE; /* number of entry */
-extern char isHistoryActivated; /* if $HOME is defined or not, and if history is, hence, activated */
+extern bool isHistoryActivated; /* if $HOME is defined or not, and if history is, hence, activated */
+extern int currentHistoryIndex; 
 
 #endif /* PLUSH_HISTORY */
