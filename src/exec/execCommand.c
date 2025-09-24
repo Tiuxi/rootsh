@@ -160,10 +160,6 @@ void plushExec_execute_command(char* commandStr) {
             plushError_print_error(err);
             plushError_destroy_error(err);
 
-            for (int i = 0; ((char*)(currentCommand->v))[i] != 0; i++) {
-                printf("%d - %c\n", ((char*)(currentCommand->v))[i], ((char*)(currentCommand->v))[i]);
-            }
-
             // free everything
             plushList_destroy2DListAll(commands);
             plushList_destroyAll(paths);
