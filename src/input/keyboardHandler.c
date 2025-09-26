@@ -249,11 +249,24 @@ int plushKH_main_loop() {
                             memcpy(buffer, history.hist[currentHistoryIndex], strlen(history.hist[currentHistoryIndex]));
                             cursorIndex = bufferIndex = strlen(buffer);
 
+                            // re-write new buffer
                             write(STDOUT_FILENO, "\r\e[2K$ ", 7);
                             write(STDOUT_FILENO, buffer, bufferIndex);
 
                             break;
                         case 'B':  // DOWN
+                            if (currentHistoryIndex == history.index) break;
+
+                            // clear buffer
+                            memset(buffer, 0, bufferIndex + 1);
+                            currentHistoryIndex = (currentHistoryIndex + 1) % HISTORY_SIZE;
+                            memcpy(buffer, history.hist[currentHistoryIndex], strlen(history.hist[currentHistoryIndex]));
+                            cursorIndex = bufferIndex = strlen(buffer);
+
+                            // re-write new buffer
+                            write(STDOUT_FILENO, "\r\e[2K$ ", 7);
+                            write(STDOUT_FILENO, buffer, bufferIndex);
+
                             break;
 
                         case 'C':  // RIGHT
