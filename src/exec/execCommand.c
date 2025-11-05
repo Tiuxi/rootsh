@@ -144,8 +144,8 @@ void plushExec_execute_command(char* commandStr) {
 
         // Check file
         if (ISFILE(currentCommand)) {
-            executable = (char*)malloc(sizeof(char) * PLUSH_MAX_ARG_LENGTH);
-            snprintf(executable, PLUSH_MAX_ARG_LENGTH, "%s", (char*)currentCommand->v);
+            executable = (char*)malloc(sizeof(char) * strlen(currentCommand->v));
+            snprintf(executable, strlen(currentCommand->v), "%s", (char*)currentCommand->v);
         }
 
         // Check "PATH" executables
@@ -185,7 +185,9 @@ void plushExec_execute_command(char* commandStr) {
                     arguments[i] = tmp->v;
                     tmp = tmp->next;
                 }
-                arguments[nbArguments] = (char*)NULL; // required for execv
+
+                // required for execv
+                arguments[nbArguments] = (char*)NULL;
 
                 // execute command
                 int exitStatus = execv(executable, arguments);

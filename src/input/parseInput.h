@@ -23,15 +23,15 @@
  */
 
 #define ISSTDIN(arg) \
-    (strncmp((char *)arg->v, "<", PLUSH_MAX_ARG_LENGTH) == 0)
+    (strncmp((char *)arg->v, "<", strlen((char *)arg->v)) == 0)
 
 #define ISSTDOUT(arg) \
-    (strncmp((char *)arg->v, ">", PLUSH_MAX_ARG_LENGTH) == 0) || \
-    (strncmp((char *)arg->v, ">+", PLUSH_MAX_ARG_LENGTH) == 0)
+    (strncmp((char *)arg->v, ">", strlen((char *)arg->v)) == 0) || \
+    (strncmp((char *)arg->v, ">+", strlen((char *)arg->v)) == 0)
 
 #define ISSTDERR(arg) \
-    (strncmp((char *)arg->v, ">>", PLUSH_MAX_ARG_LENGTH) == 0) || \
-    (strncmp((char *)arg->v, ">>+", PLUSH_MAX_ARG_LENGTH) == 0) \
+    (strncmp((char *)arg->v, ">>", strlen((char *)arg->v)) == 0) || \
+    (strncmp((char *)arg->v, ">>+", strlen((char *)arg->v)) == 0) \
 
 #define ISREDIRECT(arg) \
     ISSTDERR(arg) || ISSTDOUT(arg) || ISSTDIN(arg)

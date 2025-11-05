@@ -2,9 +2,9 @@
 
 int plushBuiltin_check_builtin(List cmd) {
     char* command = cmd->v;
+    int commandLength = strlen(command);
 
-    if (!strncmp(command, "cd", PLUSH_BASE_COMMAND_LENGTH)) {
-
+    if (!strncmp(command, "cd", commandLength)) {
         char* newPWD = NULL;
 
         // 1 argument ("cd"), return to home folder
@@ -51,13 +51,13 @@ int plushBuiltin_check_builtin(List cmd) {
         return TRUE;
     }
 
-    if (!strncmp(command, "history", PLUSH_BASE_COMMAND_LENGTH)) {
+    if (!strncmp(command, "history", commandLength)) {
         if (!isHistoryActivated) return TRUE;
         int index = (history.index+1) % HISTORY_SIZE;
 
         while (index != history.index) {
             if (history.hist[index] != NULL) {
-                write(STDOUT_FILENO, history.hist[index], PLUSH_BASE_COMMAND_LENGTH);
+                write(STDOUT_FILENO, history.hist[index], strlen(history.hist[index]));
                 write(STDOUT_FILENO, "\n", 2);
             }
 

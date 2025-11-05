@@ -3,7 +3,7 @@
 List plushInput_splitInput(char* command) {
     int commandLength = strlen(command);
 
-    char* s = (char*)malloc(sizeof(char) * PLUSH_MAX_ARG_LENGTH);
+    char* s = (char*)malloc(sizeof(char) * (strlen(command)+1));
     List argList = plushList_new(s); // list with current command arguments
     List commandList = plushList_new(argList); // list with every command
     List n = argList; // list element of current argument
@@ -20,7 +20,7 @@ List plushInput_splitInput(char* command) {
                 currentIndex = 0;
             }
 
-            s = (char*)malloc(sizeof(char) * PLUSH_MAX_ARG_LENGTH);
+            s = (char*)malloc(sizeof(char) * strlen(command));
             argList = plushList_new(s);
             commandList = plushList_push(commandList, argList);
             n = argList;
@@ -40,8 +40,8 @@ List plushInput_splitInput(char* command) {
                 ((char*)(n->v))[currentIndex] = '\0';
                 currentIndex = 0;
             }
-            
-            s = (char*)malloc(sizeof(char) * PLUSH_MAX_ARG_LENGTH);
+
+            s = (char*)malloc(sizeof(char) * strlen(command));
             argList = plushList_push(argList, s);
             n = n->next;
         }
@@ -91,10 +91,8 @@ List plushInput_splitInput(char* command) {
 
         // else put the char at the end of the string
         else {
-            if (currentIndex < PLUSH_MAX_ARG_LENGTH-1) {
-                ((char *)(n->v))[currentIndex] = command[i]; // copy every char
-                currentIndex++;
-            }
+            ((char *)(n->v))[currentIndex] = command[i]; // copy every char
+            currentIndex++;
         }
     }
     ((char*)(n->v))[currentIndex] = '\0';

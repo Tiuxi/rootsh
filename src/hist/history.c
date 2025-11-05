@@ -45,6 +45,7 @@ void plushHistory_load_file() {
     history.index = 0;
     history.hist = (char**)malloc(sizeof(char*) * HISTORY_SIZE);
     for (unsigned int i=0; i<HISTORY_SIZE; i++) history.hist[i] = NULL;
+    int commandLengthExtend = 0;
     history.hist[history.index] = (char*)calloc(PLUSH_BASE_COMMAND_LENGTH, sizeof(char));
     memset(history.hist[history.index], 0, PLUSH_BASE_COMMAND_LENGTH);
 
@@ -59,14 +60,22 @@ void plushHistory_load_file() {
         for (int i=0; i<bytes_reads; i++) {
             // new command
             if (buffer[i] == '\n') {
+                history.hist[history.index][currentIndex] = '\0';
                 history.index = (history.index+1) % HISTORY_SIZE;
 
+                // if command is already allocated, free it
                 if (history.hist[history.index] != NULL)
                     free(history.hist[history.index]);
+
                 history.hist[history.index] = (char*)calloc(PLUSH_BASE_COMMAND_LENGTH, sizeof(char));
                 memset(history.hist[history.index], 0, PLUSH_BASE_COMMAND_LENGTH);
                 currentIndex = 0;
-            } else if (currentIndex < PLUSH_BASE_COMMAND_LENGTH) {
+                commandLengthExtend = 0;
+            } else {
+                if (currentIndex >= (PLUSH_BASE_COMMAND_LENGTH << commandLengthExtend)-1) {
+                    commandLengthExtend++;
+                    history.hist[history.index] = realloc(history.hist[history.index], PLUSH_BASE_COMMAND_LENGTH << commandLengthExtend);
+                }
                 history.hist[history.index][currentIndex] = buffer[i];
                 currentIndex++;
             }
@@ -97,18 +106,21 @@ void plushHistory_destroy_history() {
 
 void plushHistory_add_command(const char* command) {
     if (!isHistoryActivated) return;
+    int commandLen = strlen(command);
 
     // check if same command than before
     char* previousCommand = history.hist[(history.index - 1 + HISTORY_SIZE) % HISTORY_SIZE];
     if (previousCommand != NULL && 
-        !strncmp(previousCommand, command, max(strlen(previousCommand), strlen(command)))) {
+        !strncmp(previousCommand, command, max(strlen(previousCommand), (size_t)commandLen))) {
 
         return;
     }
 
-    int commandLenght = strlen(command);
-    memset(history.hist[history.index], 0, PLUSH_BASE_COMMAND_LENGTH);
-    memcpy(history.hist[history.index], command, commandLenght);
+    if (commandLen >= PLUSH_BASE_COMMAND_LENGTH) {
+        history.hist[history.index] = realloc(history.hist[history.index], commandLen+1);
+    }
+    memcpy(history.hist[history.index], command, commandLen);
+    history.hist[history.index][commandLen] = '\0';
 
     history.index = (history.index+1) % HISTORY_SIZE;
     if (history.hist[history.index] != NULL)
