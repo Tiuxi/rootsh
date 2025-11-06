@@ -41,6 +41,12 @@ uchar plushKH_get_char() {
 
 /**
  * Handle all control character that is not an escape sequence
+ * 
+ * @param c                 The character read
+ * @param _bufferPt         A pointer to the input buffer
+ * @param _bufferIndexPt    A pointer to the buffer index
+ * @param _cursorIndexPt    A pointer to the cursor index
+ * @param bufferSize        The size of the input buffer
  */
 void plushKH_control_char(uchar c, char** _bufferPt, int* _bufferIndexPt, int* _cursorIndexPt, int bufferSize) {
     char* buffer = *_bufferPt;
@@ -119,6 +125,161 @@ void plushKH_control_char(uchar c, char** _bufferPt, int* _bufferIndexPt, int* _
     *_cursorIndexPt = cursorIndex;
 }
 
+/**
+ * Handle the escape sequences
+ *
+ * @param _bufferPt         A pointer to the input buffer
+ * @param _bufferIndexPt    A pointer to the buffer index
+ * @param _cursorIndexPt    A pointer to the cursor index
+ * @param bufferSize        The size of the input buffer
+ */
+void plushKH_escape_seqence(char** _bufferPt, int* _bufferIndexPt, int* _cursorIndexPt, int bufferSize) {
+    uchar c = plushKH_get_char();
+    char* buffer = *_bufferPt;
+    int bufferIndex = *_bufferIndexPt;
+    int cursorIndex = *_cursorIndexPt;
+
+    // check if the char is not the Control Sequence Introducer (CSI), return
+    if (c != '[') {
+        plushError_print_new_warn("Unknown escape sequence");
+        printf("    - Sequence : %d\n", c);
+        return;
+    }
+
+    // get the sequence
+    c = plushKH_get_char();
+
+    // get arguments if they exist
+    if (c >= '0' && c <= '9') {
+        int arguments = 0;
+
+        // get argument
+        // stop when no more argument (tilde obtained)
+        while (c) {
+            arguments = arguments * 10;
+            arguments += c - '0';
+
+            c = plushKH_get_char();
+        }
+
+        switch (arguments) {
+            // home
+            case 1:
+                printf("\nHome key pressed\n");
+                break;
+
+            // insert
+            case 2:
+                printf("\nInsert key pressed\n");
+                break;
+
+            // delete
+            case 3:
+
+                if (cursorIndex == bufferIndex) break;
+                for (uint i = cursorIndex; i < (uint)bufferIndex; i++)
+                    buffer[i] = buffer[i + 1];  // push every other char
+
+                bufferIndex--;
+
+                // clear and rewrite after cursor
+                write(STDOUT_FILENO, "\r\e[2K$ ", 7);
+                write(STDOUT_FILENO, buffer, bufferIndex);
+
+                // move cursor back
+                char cursorOffset[15];
+                if (cursorIndex != bufferIndex) {
+                    snprintf(cursorOffset, 15, "\e[%dD", bufferIndex - cursorIndex);
+                    write(STDOUT_FILENO, cursorOffset, strlen(cursorOffset));
+                }
+
+                break;
+
+            // end
+            case 4:
+                printf("\nEnd key pressed\n");
+                break;
+
+            // page up
+            case 5:
+                printf("\nPage up key pressed\n");
+                break;
+
+            // page down
+            case 6:
+                printf("\nPage down key pressed\n");
+                break;
+
+            default:
+                printf("\nArgument %d \n", arguments);
+                break;
+        }
+    }
+    
+    // function with no arguments
+    else switch (c) {
+        // UP
+        case 'A':
+            if (currentHistoryIndex == (int)((history.index + 1) % HISTORY_SIZE)) break;
+            if (!history.hist[(currentHistoryIndex + HISTORY_SIZE - 1) % HISTORY_SIZE]) break;
+
+            // if new command, save it for now
+            if (currentHistoryIndex == history.index) {
+                memcpy(history.hist[history.index], buffer, bufferIndex);
+            }
+            // clear buffer
+            memset(buffer, 0, bufferIndex + 1);
+            currentHistoryIndex = (currentHistoryIndex + HISTORY_SIZE - 1) % HISTORY_SIZE;
+            memcpy(buffer, history.hist[currentHistoryIndex], strlen(history.hist[currentHistoryIndex]));
+            cursorIndex = bufferIndex = strlen(buffer);
+
+            // re-write new buffer
+            write(STDOUT_FILENO, "\r\e[2K$ ", 7);
+            write(STDOUT_FILENO, buffer, bufferIndex);
+
+            break;
+
+        // DOWN
+        case 'B':
+            if (currentHistoryIndex == history.index) break;
+
+            // clear buffer
+            memset(buffer, 0, bufferIndex + 1);
+            currentHistoryIndex = (currentHistoryIndex + 1) % HISTORY_SIZE;
+            memcpy(buffer, history.hist[currentHistoryIndex], strlen(history.hist[currentHistoryIndex]));
+            cursorIndex = bufferIndex = strlen(buffer);
+
+            // re-write new buffer
+            write(STDOUT_FILENO, "\r\e[2K$ ", 7);
+            write(STDOUT_FILENO, buffer, bufferIndex);
+
+            break;
+
+        // RIGHT
+        case 'C':
+            if (cursorIndex < bufferIndex) {
+                cursorIndex++;
+                write(STDOUT_FILENO, "\e[1C", 4);
+            }
+            break;
+
+        // LEFT
+        case 'D':
+            if (cursorIndex > 0) {
+                cursorIndex--;
+                write(STDOUT_FILENO, "\e[1D", 4);
+            }
+            break;
+
+        default:
+            printf("Sequence %d - %c\n", c, c);
+    }
+
+    *_bufferPt = buffer;
+    *_bufferIndexPt = bufferIndex;
+    *_cursorIndexPt = cursorIndex;
+}
+
 int plushKH_main_loop() {
     RUNNING = TRUE;
 
@@ -164,147 +325,7 @@ int plushKH_main_loop() {
 
         // c is an escape sequence
         else {
-            // get next char
-            c = plushKH_get_char();
-
-            // check if the char is the Control Sequence Introducer (CSI)
-            if (c == '[') {
-                // get the sequence
-                c = plushKH_get_char();
-
-                //
-                // if sequence start with a number, then sequence is a function with arguments
-                // (tilde terminated sequence)
-                //
-                if (c >= '0' && c <= '9') {
-                    int arguments = 0;
-
-                    // get argument
-                    // stop when no more argument (tilde obtained)
-                    while (c) {
-                        arguments = arguments * 10;
-                        arguments += c - '0';
-
-                        c = plushKH_get_char();
-                    }
-
-                    switch (arguments) {
-                        // home
-                        case 1:
-                            printf("\nHome key pressed\n");
-                            break;
-
-                        // insert
-                        case 2:
-                            printf("\nInsert key pressed\n");
-                            break;
-
-                        // delete
-                        case 3:
-
-                            if (cursorIndex == bufferIndex) break;
-                            for (uint i = cursorIndex; i < (uint)bufferIndex; i++)
-                                buffer[i] = buffer[i + 1];  // push every other char
-
-                            bufferIndex--;
-
-                            // clear and rewrite after cursor
-                            write(STDOUT_FILENO, "\r\e[2K$ ", 7);
-                            write(STDOUT_FILENO, buffer, bufferIndex);
-
-                            // move cursor back
-                            char cursorOffset[15];
-                            if (cursorIndex != bufferIndex) {
-                                snprintf(cursorOffset, 15, "\e[%dD", bufferIndex - cursorIndex);
-                                write(STDOUT_FILENO, cursorOffset, strlen(cursorOffset));
-                            }
-
-                            break;
-
-                        // end
-                        case 4:
-                            printf("\nEnd key pressed\n");
-                            break;
-
-                        // page up
-                        case 5:
-                            printf("\nPage up key pressed\n");
-                            break;
-
-                        // page down
-                        case 6:
-                            printf("\nPage down key pressed\n");
-                            break;
-
-                        default:
-                            printf("\nArgument %d \n", arguments);
-                            break;
-                    }
-
-                }
-
-                //
-                // function with no arguments
-                //
-                else
-                    switch (c) {
-                        case 'A':  // UP
-                            if (currentHistoryIndex == (int)((history.index + 1) % HISTORY_SIZE)) break;
-                            if (!history.hist[(currentHistoryIndex + HISTORY_SIZE - 1) % HISTORY_SIZE]) break;
-
-                            // if new command, save it for now
-                            if (currentHistoryIndex == history.index) {
-                                memcpy(history.hist[history.index], buffer, bufferIndex);
-                            }
-                            // clear buffer
-                            memset(buffer, 0, bufferIndex + 1);
-                            currentHistoryIndex = (currentHistoryIndex + HISTORY_SIZE - 1) % HISTORY_SIZE;
-                            memcpy(buffer, history.hist[currentHistoryIndex], strlen(history.hist[currentHistoryIndex]));
-                            cursorIndex = bufferIndex = strlen(buffer);
-
-                            // re-write new buffer
-                            write(STDOUT_FILENO, "\r\e[2K$ ", 7);
-                            write(STDOUT_FILENO, buffer, bufferIndex);
-
-                            break;
-                        case 'B':  // DOWN
-                            if (currentHistoryIndex == history.index) break;
-
-                            // clear buffer
-                            memset(buffer, 0, bufferIndex + 1);
-                            currentHistoryIndex = (currentHistoryIndex + 1) % HISTORY_SIZE;
-                            memcpy(buffer, history.hist[currentHistoryIndex], strlen(history.hist[currentHistoryIndex]));
-                            cursorIndex = bufferIndex = strlen(buffer);
-
-                            // re-write new buffer
-                            write(STDOUT_FILENO, "\r\e[2K$ ", 7);
-                            write(STDOUT_FILENO, buffer, bufferIndex);
-
-                            break;
-
-                        case 'C':  // RIGHT
-                            if (cursorIndex < bufferIndex) {
-                                cursorIndex++;
-                                write(STDOUT_FILENO, "\e[1C", 4);
-                            }
-                            break;
-                        case 'D':  // LEFT
-                            if (cursorIndex > 0) {
-                                cursorIndex--;
-                                write(STDOUT_FILENO, "\e[1D", 4);
-                            }
-                            break;
-
-                        default:
-                            printf("Sequence %d - %c\n", c, c);
-                    }
-            }
-
-            // unknow sequence (not CSI)
-            else {
-                plushError_print_new_warn("Unknown escape sequence");
-                printf("    - Sequence : %d\n", c);
-            }
+            
         }
     }
 
