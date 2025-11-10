@@ -40,7 +40,7 @@ void plushHistory_destroy_history();
  * 
  * @param command   The command to add to the history
  */
-void plushHistory_add_command(const char* command);
+void plushHistory_add_command(const uchar* command);
 
 /**
  * Save current history to the history file in the .config folder

@@ -24,6 +24,6 @@
  * 
  * @param command       The command to execute (as a string)
  */
-void plushExec_execute_command(char* command);
+void plushExec_execute_command(uchar* command);
 
 #endif

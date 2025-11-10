@@ -61,7 +61,7 @@
  * @param command       The string to split
  * @return The list of commands
  */
-List plushInput_splitInput(char *command);
+List plushInput_splitInput(uchar *command);
 
 /**
  * Check in the List "command" if there are redirection and they are correctly made, if not return error message in argument `error`

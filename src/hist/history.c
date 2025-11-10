@@ -1,7 +1,7 @@
 #include "history.h"
 
 History history;
-unsigned int HISTORY_SIZE = 2000;
+unsigned int HISTORY_SIZE = 1000;
 bool isHistoryActivated=TRUE;
 int currentHistoryIndex = 0;
 
@@ -104,14 +104,14 @@ void plushHistory_destroy_history() {
     return;
 }
 
-void plushHistory_add_command(const char* command) {
+void plushHistory_add_command(const uchar* command) {
     if (!isHistoryActivated) return;
-    int commandLen = strlen(command);
+    int commandLen = strlen((char*)command);
 
     // check if same command than before
     char* previousCommand = history.hist[(history.index - 1 + HISTORY_SIZE) % HISTORY_SIZE];
     if (previousCommand != NULL && 
-        !strncmp(previousCommand, command, max(strlen(previousCommand), (size_t)commandLen))) {
+        !strncmp(previousCommand, (char*)command, max(strlen(previousCommand), (size_t)commandLen))) {
 
         return;
     }

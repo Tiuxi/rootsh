@@ -35,7 +35,7 @@ void plushKH_enable_raw_mode() {
 
 uchar plushKH_get_char() {
     uchar c;
-    while (!(read(STDIN_FILENO, &c, 1) > 0));
+    while (!(read(STDIN_FILENO, &c, 1) > 0)) printf("%d\n", c);
     return c;
 }
 
@@ -48,8 +48,8 @@ uchar plushKH_get_char() {
  * @param _cursorIndexPt    A pointer to the cursor index
  * @param bufferSize        The size of the input buffer
  */
-void plushKH_control_char(uchar c, char** _bufferPt, int* _bufferIndexPt, int* _cursorIndexPt, int bufferSize) {
-    char* buffer = *_bufferPt;
+void plushKH_control_char(uchar c, uchar** _bufferPt, int* _bufferIndexPt, int* _cursorIndexPt, int bufferSize) {
+    uchar* buffer = *_bufferPt;
     int bufferIndex = *_bufferIndexPt;
     int cursorIndex = *_cursorIndexPt;
 
@@ -62,7 +62,7 @@ void plushKH_control_char(uchar c, char** _bufferPt, int* _bufferIndexPt, int* _
             // if command is empty, skip
             if (bufferIndex != 0) {
                 buffer[bufferIndex] = '\0';
-                if (strncmp(buffer, "exit", bufferSize) == 0)
+                if (strncmp((char*)buffer, "exit", bufferSize) == 0)
                     RUNNING = FALSE;
                 else {
                     plushHistory_add_command(buffer);
@@ -126,16 +126,63 @@ void plushKH_control_char(uchar c, char** _bufferPt, int* _bufferIndexPt, int* _
 }
 
 /**
+ * Get the arguments of an escape code function
+ * 
+ * @param arg           A pointer to a non-allocated int array
+ * @param currentChar   A pointer to the current character that is being processed
+ * 
+ * @return The number of argument recognized
+ */
+int plushKH_get_arguments(int** arg, uchar* currentChar) {
+    uchar c = *currentChar;
+    bool argEnded = FALSE;
+    int nbArg = 1;
+
+    *arg = (int*)malloc(sizeof(int) * nbArg);
+    ASSERT((*arg) != NULL);
+    int* arguments = *arg;
+    arguments[nbArg-1] = 0;
+
+    while (!argEnded) {
+        if (c == ';') {
+            nbArg++;
+            arguments = (int*)realloc(arguments, sizeof(int*) * nbArg);
+            ASSERT(arguments != NULL);
+            arguments[nbArg-1] = 0;
+        } 
+        
+        else if (c >= '0' && c <= '9') {
+            arguments[nbArg - 1] = arguments[nbArg - 1] * 10;
+            arguments[nbArg - 1] += c - '0';
+        }
+
+        // range for end of control sequence : defined by ECMA 48
+        else if (c >= 0x40 && c <= 0x7E) {
+            argEnded = TRUE;
+            break;
+        }
+
+        else {
+            plushError_print_new_warn("Unrecognized char in escape sequence");
+        }
+
+        c = plushKH_get_char();
+    }
+
+    *currentChar = c;
+    return nbArg;
+}
+
+/**
  * Handle the escape sequences
  *
  * @param _bufferPt         A pointer to the input buffer
  * @param _bufferIndexPt    A pointer to the buffer index
  * @param _cursorIndexPt    A pointer to the cursor index
- * @param bufferSize        The size of the input buffer
  */
-void plushKH_escape_seqence(char** _bufferPt, int* _bufferIndexPt, int* _cursorIndexPt, int bufferSize) {
+void plushKH_escape_seqence(uchar** _bufferPt, int* _bufferIndexPt, int* _cursorIndexPt) {
     uchar c = plushKH_get_char();
-    char* buffer = *_bufferPt;
+    uchar* buffer = *_bufferPt;
     int bufferIndex = *_bufferIndexPt;
     int cursorIndex = *_cursorIndexPt;
 
@@ -149,23 +196,83 @@ void plushKH_escape_seqence(char** _bufferPt, int* _bufferIndexPt, int* _cursorI
     // get the sequence
     c = plushKH_get_char();
 
-    // get arguments if they exist
+    // ansi escape sequence with arguments
     if (c >= '0' && c <= '9') {
-        int arguments = 0;
+        int* args;
+        int nbArgs = plushKH_get_arguments(&args, &c);
+        (void)nbArgs;
 
-        // get argument
-        // stop when no more argument (tilde obtained)
-        while (c) {
-            arguments = arguments * 10;
-            arguments += c - '0';
-
-            c = plushKH_get_char();
-        }
-
-        switch (arguments) {
+        switch (args[0]) {
             // home
             case 1:
-                printf("\nHome key pressed\n");
+                // home key
+                if (nbArgs == 1 && c == '~') {
+                    printf("\nHome key pressed\n");
+                }
+
+                // key modifier
+                else if (nbArgs == 2) {
+
+                    // shift modifier
+                    if (args[1] == 2) {
+                        
+                    }
+
+                    // alt modifier
+                    else if (args[1] == 3) {
+
+                    }
+
+                    // ctrl modifier
+                    else if (args[1] == 5) {
+                        switch (c) {
+                        // RIGHT
+                        case 'C':
+                            // first, move after every spaces
+                            while (cursorIndex < bufferIndex && buffer[cursorIndex] == ' ') {
+                                cursorIndex++;
+                                write(STDOUT_FILENO, "\e[1C", 4);
+                            }
+
+                            // then, move after the whole word
+                            while (cursorIndex < bufferIndex && buffer[cursorIndex] != ' ') {
+                                cursorIndex++;
+                                write(STDOUT_FILENO, "\e[1C", 4);
+                            }
+                            break;
+
+                        // LEFT
+                        case 'D':
+                            if (cursorIndex != 0) {
+                                cursorIndex--;
+                                write(STDOUT_FILENO, "\e[1D", 4);
+                            }
+
+                            // first, move after every spaces
+                            while (cursorIndex > 0 && buffer[cursorIndex] == ' ') {
+                                cursorIndex--;
+                                write(STDOUT_FILENO, "\e[1D", 4);
+                            }
+
+                            // then, move after the whole word
+                            while (cursorIndex > 0 && buffer[cursorIndex] != ' ') {
+                                cursorIndex--;
+                                write(STDOUT_FILENO, "\e[1D", 4);
+                            }
+
+                            // if we're not at the start, move to get to the first letter of the word
+                            if (cursorIndex != 0) {
+                                cursorIndex++;
+                                write(STDOUT_FILENO, "\e[1C", 4);
+                            }
+                            break;
+                        }
+                    }
+
+                    else {
+                        plushError_print_new_warn("Unknown key modifer in escape sequence");
+                    }
+                }
                 break;
 
             // insert
@@ -211,12 +318,12 @@ void plushKH_escape_seqence(char** _bufferPt, int* _bufferIndexPt, int* _cursorI
                 break;
 
             default:
-                printf("\nArgument %d \n", arguments);
+                printf("\nArgument %d \n", args[0]);
                 break;
         }
     }
     
-    // function with no arguments
+    // no arguments
     else switch (c) {
         // UP
         case 'A':
@@ -231,7 +338,7 @@ void plushKH_escape_seqence(char** _bufferPt, int* _bufferIndexPt, int* _cursorI
             memset(buffer, 0, bufferIndex + 1);
             currentHistoryIndex = (currentHistoryIndex + HISTORY_SIZE - 1) % HISTORY_SIZE;
             memcpy(buffer, history.hist[currentHistoryIndex], strlen(history.hist[currentHistoryIndex]));
-            cursorIndex = bufferIndex = strlen(buffer);
+            cursorIndex = bufferIndex = strlen((char*)buffer);
 
             // re-write new buffer
             write(STDOUT_FILENO, "\r\e[2K$ ", 7);
@@ -247,7 +354,7 @@ void plushKH_escape_seqence(char** _bufferPt, int* _bufferIndexPt, int* _cursorI
             memset(buffer, 0, bufferIndex + 1);
             currentHistoryIndex = (currentHistoryIndex + 1) % HISTORY_SIZE;
             memcpy(buffer, history.hist[currentHistoryIndex], strlen(history.hist[currentHistoryIndex]));
-            cursorIndex = bufferIndex = strlen(buffer);
+            cursorIndex = bufferIndex = strlen((char*)buffer);
 
             // re-write new buffer
             write(STDOUT_FILENO, "\r\e[2K$ ", 7);
@@ -285,7 +392,8 @@ int plushKH_main_loop() {
 
     // input buffer + cursor localisation
     int commandLengthExtend = 0;
-    char* buffer = (char*)malloc(PLUSH_BASE_COMMAND_LENGTH);
+    uchar* buffer = (uchar*)malloc(PLUSH_BASE_COMMAND_LENGTH * sizeof(uchar));
+    ASSERT(buffer != NULL);
     memset(buffer, 0, PLUSH_BASE_COMMAND_LENGTH);
 
     int bufferIndex = 0;
@@ -297,14 +405,13 @@ int plushKH_main_loop() {
     while (RUNNING) {
         uchar c = plushKH_get_char();
 
-        //
-        // c is a printable char
-        //
-        if (isprint(c)) {
+        // c is a printable char or an UTF-8 char
+        if (isprint(c) || (c & 0x80) != 0) {
             // if allocated buffer is too small, reallocate
             if (bufferIndex >= (PLUSH_BASE_COMMAND_LENGTH << commandLengthExtend)-1) {
                 commandLengthExtend++;
                 buffer = realloc(buffer, PLUSH_BASE_COMMAND_LENGTH << commandLengthExtend);
+                ASSERT(buffer != NULL);
             }
 
             // cursor is not at the end
@@ -315,7 +422,21 @@ int plushKH_main_loop() {
             buffer[cursorIndex] = c;
             bufferIndex++;
             cursorIndex++;
-            write(STDOUT_FILENO, &c, 1);
+
+            if (cursorIndex != bufferIndex) {
+                // clear and rewrite after cursor
+                write(STDOUT_FILENO, "\r\e[2K$ ", 7);
+                write(STDOUT_FILENO, buffer, bufferIndex);
+
+                // move cursor back
+                char cursorOffset[15];
+                if (cursorIndex != bufferIndex) {
+                    snprintf(cursorOffset, 15, "\e[%dD", bufferIndex - cursorIndex);
+                    write(STDOUT_FILENO, cursorOffset, strlen(cursorOffset));
+                }
+            }
+            else 
+                write(STDOUT_FILENO, &c, 1);
         }
 
         // c is a control character that is not an escape sequence
@@ -325,7 +446,7 @@ int plushKH_main_loop() {
 
         // c is an escape sequence
         else {
-            
+            plushKH_escape_seqence(&buffer, &bufferIndex, &cursorIndex);
         }
     }
 

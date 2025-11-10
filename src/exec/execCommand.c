@@ -102,7 +102,7 @@ char* get_single_command_from_env_paths(char* command, List paths) {
 }
 
 // main function
-void plushExec_execute_command(char* commandStr) {
+void plushExec_execute_command(uchar* commandStr) {
     List paths = getEnvironementsDir();
 
     // parse the command

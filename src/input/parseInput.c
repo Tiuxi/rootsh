@@ -1,9 +1,9 @@
 #include "input/parseInput.h"
 
-List plushInput_splitInput(char* command) {
-    int commandLength = strlen(command);
+List plushInput_splitInput(uchar* command) {
+    int commandLength = strlen((char*)command);
 
-    char* s = (char*)malloc(sizeof(char) * (strlen(command)+1));
+    char* s = (char*)malloc(sizeof(char) * (commandLength+1));
     List argList = plushList_new(s); // list with current command arguments
     List commandList = plushList_new(argList); // list with every command
     List n = argList; // list element of current argument
@@ -20,7 +20,7 @@ List plushInput_splitInput(char* command) {
                 currentIndex = 0;
             }
 
-            s = (char*)malloc(sizeof(char) * strlen(command));
+            s = (char*)malloc(sizeof(char) * commandLength);
             argList = plushList_new(s);
             commandList = plushList_push(commandList, argList);
             n = argList;
@@ -41,7 +41,7 @@ List plushInput_splitInput(char* command) {
                 currentIndex = 0;
             }
 
-            s = (char*)malloc(sizeof(char) * strlen(command));
+            s = (char*)malloc(sizeof(char) * commandLength);
             argList = plushList_push(argList, s);
             n = n->next;
         }
