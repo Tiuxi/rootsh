@@ -145,7 +145,18 @@ void plushExec_execute_command(uchar* commandStr) {
         // Check file
         if (ISFILE(currentCommand)) {
             executable = (char*)malloc(sizeof(char) * strlen(currentCommand->v));
-            snprintf(executable, strlen(currentCommand->v), "%s", (char*)currentCommand->v);
+            memcpy(executable, currentCommand->v, strlen((char*)currentCommand->v));
+
+            // file doesn't exist
+            if (access(executable, F_OK) != 0) {
+                Error err = plushError_new_error();
+                plushError_set_error_with_argument(err, "File not found :", executable);
+                plushError_print_error(err);
+                plushError_destroy_error(err);
+
+                free(executable);
+                break;
+            }
         }
 
         // Check "PATH" executables

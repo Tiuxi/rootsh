@@ -1,7 +1,10 @@
 #include "input/keyboardHandler.h"
+#include "keyboardHandler.h"
 
 struct termios previous_config;
-char RUNNING;
+int W_LINE = 1;
+int W_COLUMN = 1;
+bool RUNNING;
 
 void plushKH_disable_raw_mode() {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &previous_config);
@@ -96,14 +99,16 @@ void plushKH_control_char(uchar c, uchar** _bufferPt, int* _bufferIndexPt, int* 
         // backspace
         case DEL:
             if (cursorIndex == 0) break;
+            plushKH_erase_current_command(cursorIndex);
+
             for (uint i = cursorIndex - 1; i < (uint)bufferIndex; i++)
                 buffer[i] = buffer[i + 1];  // push every other char
-
+            
             cursorIndex--;
             bufferIndex--;
 
             // clear and rewrite after cursor
-            write(STDOUT_FILENO, "\r\e[2K$ ", 7);
+            plushTheme_print_prompt_1();
             write(STDOUT_FILENO, buffer, bufferIndex);
 
             // move cursor back
@@ -290,7 +295,8 @@ void plushKH_escape_seqence(uchar** _bufferPt, int* _bufferIndexPt, int* _cursor
                 bufferIndex--;
 
                 // clear and rewrite after cursor
-                write(STDOUT_FILENO, "\r\e[2K$ ", 7);
+                plushKH_erase_current_command(cursorIndex);
+                plushTheme_print_prompt_1();
                 write(STDOUT_FILENO, buffer, bufferIndex);
 
                 // move cursor back
@@ -334,6 +340,9 @@ void plushKH_escape_seqence(uchar** _bufferPt, int* _bufferIndexPt, int* _cursor
             if (currentHistoryIndex == history.index) {
                 memcpy(history.hist[history.index], buffer, bufferIndex);
             }
+            plushKH_erase_current_command(cursorIndex);
+            plushTheme_print_prompt_1();
+
             // clear buffer
             memset(buffer, 0, bufferIndex + 1);
             currentHistoryIndex = (currentHistoryIndex + HISTORY_SIZE - 1) % HISTORY_SIZE;
@@ -341,7 +350,6 @@ void plushKH_escape_seqence(uchar** _bufferPt, int* _bufferIndexPt, int* _cursor
             cursorIndex = bufferIndex = strlen((char*)buffer);
 
             // re-write new buffer
-            write(STDOUT_FILENO, "\r\e[2K$ ", 7);
             write(STDOUT_FILENO, buffer, bufferIndex);
 
             break;
@@ -349,6 +357,8 @@ void plushKH_escape_seqence(uchar** _bufferPt, int* _bufferIndexPt, int* _cursor
         // DOWN
         case 'B':
             if (currentHistoryIndex == history.index) break;
+            plushKH_erase_current_command(cursorIndex);
+            plushTheme_print_prompt_1();
 
             // clear buffer
             memset(buffer, 0, bufferIndex + 1);
@@ -357,7 +367,6 @@ void plushKH_escape_seqence(uchar** _bufferPt, int* _bufferIndexPt, int* _cursor
             cursorIndex = bufferIndex = strlen((char*)buffer);
 
             // re-write new buffer
-            write(STDOUT_FILENO, "\r\e[2K$ ", 7);
             write(STDOUT_FILENO, buffer, bufferIndex);
 
             break;
@@ -378,6 +387,11 @@ void plushKH_escape_seqence(uchar** _bufferPt, int* _bufferIndexPt, int* _cursor
             }
             break;
 
+        // Home
+        case 'H':
+            
+            break;
+
         default:
             printf("Sequence %d - %c\n", c, c);
     }
@@ -395,6 +409,10 @@ int plushKH_main_loop() {
     uchar* buffer = (uchar*)malloc(PLUSH_BASE_COMMAND_LENGTH * sizeof(uchar));
     ASSERT(buffer != NULL);
     memset(buffer, 0, PLUSH_BASE_COMMAND_LENGTH);
+
+    // force window size update
+    SIG_hasWindowChanged = 1;
+    plushKH_check_window_resize();
 
     int bufferIndex = 0;
     int cursorIndex = 0;
@@ -425,7 +443,8 @@ int plushKH_main_loop() {
 
             if (cursorIndex != bufferIndex) {
                 // clear and rewrite after cursor
-                write(STDOUT_FILENO, "\r\e[2K$ ", 7);
+                plushKH_erase_current_command(cursorIndex);
+                plushTheme_print_prompt_1();
                 write(STDOUT_FILENO, buffer, bufferIndex);
 
                 // move cursor back
@@ -452,4 +471,19 @@ int plushKH_main_loop() {
 
     free(buffer);
     return 0;
+}
+
+void plushKH_erase_current_command(int cursorIndex) {
+    int currentLine = (int)( (cursorIndex - 1 + userPrompt1Size) / W_COLUMN );
+    
+    // get to first line
+    if (currentLine != 0) {
+        printf("\e[%dA\r", currentLine);
+        fflush(stdout);
+    } else {
+        write(STDOUT_FILENO, "\r", 1);
+    }
+    
+    // erase all after
+    write(STDOUT_FILENO, "\e[0J", 4);
 }
