@@ -42,6 +42,26 @@ uchar plushKH_get_char() {
     return c;
 }
 
+void plushKh_move_cursor(int oldCursorIndex, int newCursorIndex) {
+    int oldLine = (int)((oldCursorIndex + userPrompt1Size) / W_COLUMN);
+    int newLine = (int)((newCursorIndex + userPrompt1Size) / W_COLUMN);
+
+    // go to correct line
+    if (newLine > oldLine)
+        printf("\e[%dB", newLine - oldLine);
+    else if (oldLine > newLine)
+        printf("\e[%dA", oldLine - newLine);
+    
+    fflush(stdout);
+    
+    // go to start of line, then to correct row
+    write(STDOUT_FILENO, "\r", 1);
+    if (((newCursorIndex + userPrompt1Size) % W_COLUMN) != 0) {
+        printf("\e[%dC", (int)((newCursorIndex + userPrompt1Size) % W_COLUMN));
+        fflush(stdout);
+    }
+}
+
 /**
  * Handle all control character that is not an escape sequence
  * 
@@ -112,11 +132,7 @@ void plushKH_control_char(uchar c, uchar** _bufferPt, int* _bufferIndexPt, int* 
             write(STDOUT_FILENO, buffer, bufferIndex);
 
             // move cursor back
-            char cursorOffset[15];
-            if (cursorIndex != bufferIndex) {
-                snprintf(cursorOffset, 15, "\e[%dD", bufferIndex - cursorIndex);
-                write(STDOUT_FILENO, cursorOffset, strlen(cursorOffset));
-            }
+            plushKh_move_cursor(bufferIndex-1, cursorIndex);
 
             break;
 
@@ -190,6 +206,7 @@ void plushKH_escape_seqence(uchar** _bufferPt, int* _bufferIndexPt, int* _cursor
     uchar* buffer = *_bufferPt;
     int bufferIndex = *_bufferIndexPt;
     int cursorIndex = *_cursorIndexPt;
+    int oldCursorIndex = cursorIndex;
 
     // check if the char is not the Control Sequence Introducer (CSI), return
     if (c != '[') {
@@ -236,40 +253,38 @@ void plushKH_escape_seqence(uchar** _bufferPt, int* _bufferIndexPt, int* _cursor
                             // first, move after every spaces
                             while (cursorIndex < bufferIndex && buffer[cursorIndex] == ' ') {
                                 cursorIndex++;
-                                write(STDOUT_FILENO, "\e[1C", 4);
                             }
 
                             // then, move after the whole word
                             while (cursorIndex < bufferIndex && buffer[cursorIndex] != ' ') {
                                 cursorIndex++;
-                                write(STDOUT_FILENO, "\e[1C", 4);
                             }
+
+                            plushKh_move_cursor(oldCursorIndex, cursorIndex);
                             break;
 
                         // LEFT
                         case 'D':
                             if (cursorIndex != 0) {
                                 cursorIndex--;
-                                write(STDOUT_FILENO, "\e[1D", 4);
                             }
 
                             // first, move after every spaces
                             while (cursorIndex > 0 && buffer[cursorIndex] == ' ') {
                                 cursorIndex--;
-                                write(STDOUT_FILENO, "\e[1D", 4);
                             }
 
                             // then, move after the whole word
                             while (cursorIndex > 0 && buffer[cursorIndex] != ' ') {
                                 cursorIndex--;
-                                write(STDOUT_FILENO, "\e[1D", 4);
                             }
 
                             // if we're not at the start, move to get to the first letter of the word
                             if (cursorIndex != 0) {
                                 cursorIndex++;
-                                write(STDOUT_FILENO, "\e[1C", 4);
                             }
+
+                            plushKh_move_cursor(oldCursorIndex, cursorIndex);
                             break;
                         }
                     }
@@ -289,22 +304,19 @@ void plushKH_escape_seqence(uchar** _bufferPt, int* _bufferIndexPt, int* _cursor
             case 3:
 
                 if (cursorIndex == bufferIndex) break;
+
+                plushKH_erase_current_command(cursorIndex);
                 for (uint i = cursorIndex; i < (uint)bufferIndex; i++)
                     buffer[i] = buffer[i + 1];  // push every other char
 
                 bufferIndex--;
 
                 // clear and rewrite after cursor
-                plushKH_erase_current_command(cursorIndex);
                 plushTheme_print_prompt_1();
                 write(STDOUT_FILENO, buffer, bufferIndex);
 
                 // move cursor back
-                char cursorOffset[15];
-                if (cursorIndex != bufferIndex) {
-                    snprintf(cursorOffset, 15, "\e[%dD", bufferIndex - cursorIndex);
-                    write(STDOUT_FILENO, cursorOffset, strlen(cursorOffset));
-                }
+                plushKh_move_cursor(0, cursorIndex);
 
                 break;
 
@@ -373,23 +385,30 @@ void plushKH_escape_seqence(uchar** _bufferPt, int* _bufferIndexPt, int* _cursor
 
         // RIGHT
         case 'C':
-            if (cursorIndex < bufferIndex) {
+            if (cursorIndex < bufferIndex)
                 cursorIndex++;
-                write(STDOUT_FILENO, "\e[1C", 4);
-            }
+
+            plushKh_move_cursor(oldCursorIndex, cursorIndex);
             break;
 
         // LEFT
         case 'D':
-            if (cursorIndex > 0) {
+            if (cursorIndex > 0)
                 cursorIndex--;
-                write(STDOUT_FILENO, "\e[1D", 4);
-            }
+
+            plushKh_move_cursor(oldCursorIndex, cursorIndex);
             break;
 
         // Home
         case 'H':
-            
+            plushKh_move_cursor(cursorIndex, 0);
+            cursorIndex = 0;
+            break;
+
+        // End
+        case 'F':
+            plushKh_move_cursor(cursorIndex, bufferIndex);
+            cursorIndex = bufferIndex;
             break;
 
         default:
@@ -448,11 +467,7 @@ int plushKH_main_loop() {
                 write(STDOUT_FILENO, buffer, bufferIndex);
 
                 // move cursor back
-                char cursorOffset[15];
-                if (cursorIndex != bufferIndex) {
-                    snprintf(cursorOffset, 15, "\e[%dD", bufferIndex - cursorIndex);
-                    write(STDOUT_FILENO, cursorOffset, strlen(cursorOffset));
-                }
+                plushKh_move_cursor(bufferIndex-1, cursorIndex);
             }
             else 
                 write(STDOUT_FILENO, &c, 1);
