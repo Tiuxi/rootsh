@@ -38,7 +38,7 @@ void plushKH_enable_raw_mode() {
 
 uchar plushKH_get_char() {
     uchar c;
-    while (!(read(STDIN_FILENO, &c, 1) > 0)) printf("%d\n", c);
+    while (!(read(STDIN_FILENO, &c, 1) > 0));
     return c;
 }
 
@@ -170,8 +170,8 @@ int plushKH_get_arguments(int** arg, uchar* currentChar) {
             arguments = (int*)realloc(arguments, sizeof(int*) * nbArg);
             ASSERT(arguments != NULL);
             arguments[nbArg-1] = 0;
-        } 
-        
+        }
+
         else if (c >= '0' && c <= '9') {
             arguments[nbArg - 1] = arguments[nbArg - 1] * 10;
             arguments[nbArg - 1] += c - '0';
@@ -441,6 +441,7 @@ int plushKH_main_loop() {
 
     while (RUNNING) {
         uchar c = plushKH_get_char();
+        plushKH_check_window_resize();
 
         // c is a printable char or an UTF-8 char
         if (isprint(c) || (c & 0x80) != 0) {

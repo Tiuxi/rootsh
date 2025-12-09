@@ -3,6 +3,7 @@
 #include "utils/error.h"
 #include "hist/history.h"
 #include "input/keyboardHandler.h"
+#include "utils/signalHandler.h"
 
 int main (int argc, char** argv) {
     // pass compilation
@@ -12,6 +13,9 @@ int main (int argc, char** argv) {
     // history
     plushHistory_check_dir();
     plushHistory_load_file();
+
+    // signal handler
+    plushSig_set_handler();
 
     // save & free on exit
     // function are put in stack, so put destroy first and save after
