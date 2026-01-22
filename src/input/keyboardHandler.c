@@ -167,7 +167,7 @@ int plushKH_get_arguments(int** arg, uchar* currentChar) {
     while (!argEnded) {
         if (c == ';') {
             nbArg++;
-            arguments = (int*)realloc(arguments, sizeof(int*) * nbArg);
+            arguments = (int*)realloc(arguments, sizeof(int) * nbArg);
             ASSERT(arguments != NULL);
             arguments[nbArg-1] = 0;
         }
@@ -448,7 +448,7 @@ int plushKH_main_loop() {
             // if allocated buffer is too small, reallocate
             if (bufferIndex >= (PLUSH_BASE_COMMAND_LENGTH << commandLengthExtend)-1) {
                 commandLengthExtend++;
-                buffer = realloc(buffer, PLUSH_BASE_COMMAND_LENGTH << commandLengthExtend);
+                buffer = realloc(buffer, (PLUSH_BASE_COMMAND_LENGTH << commandLengthExtend) * sizeof(uchar));
                 ASSERT(buffer != NULL);
             }
 
