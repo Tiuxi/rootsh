@@ -57,5 +57,6 @@ typedef struct s_hist {
 extern History history; /* history global variable */
 extern unsigned int HISTORY_SIZE; /* definition in history.c */
 extern int HISTORY_currentCommandIndex;
+extern bool isHistoryActivated;
 
 #endif /* PLUSH_HISTORY */
