@@ -169,7 +169,7 @@ void plushHistory_add_command(const char* command) {
     char* histFilePath = (char*)malloc(sizeof(char) * FILENAME_MAX);
     snprintf(histFilePath, FILENAME_MAX, "%s/%s/%s", envHome, PATH_HISTDIR, PATH_HISTFILE);
 
-    history.fd = open(histFilePath, O_WRONLY | O_CREAT, MOD_HISTFILE);
+    history.fd = open(histFilePath, O_APPEND | O_WRONLY | O_CREAT, MOD_HISTFILE);
 
     if (write(history.fd, history.hist[oldIndex], strlen(history.hist[oldIndex])) < 0
             || write(history.fd, "\n", 1) < 0) {
