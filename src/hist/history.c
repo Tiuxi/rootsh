@@ -174,7 +174,7 @@ void plushHistory_add_command(const char* command) {
     history.fd = open(histFilePath, O_WRONLY | O_CREAT, MOD_HISTFILE);
 
     if (write(history.fd, history.hist[oldIndex], strlen(history.hist[oldIndex])) < 0
-            || wrte(history.fd, "\n", 1) < 0) {
+            || write(history.fd, "\n", 1) < 0) {
         plushError_print_new_warn("Cannot write to history file");
     }
 
