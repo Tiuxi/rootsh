@@ -73,7 +73,6 @@ void plushHistory_load_file() {
             if (buffer[i] == '\n') {
                 history.hist[history.index][currentIndex] = '\0';
                 history.index = (history.index+1) % HISTORY_SIZE;
-                printf("Loaded command %d : %s\n", history.index, history.hist[history.index-1]);
 
                 // free if already allocated (circular buffer)
                 if (history.hist[history.index] != NULL)
