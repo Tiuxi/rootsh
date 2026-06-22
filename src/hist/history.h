@@ -15,7 +15,8 @@
 
 #define PATH_HISTDIR ".config/plush"
 #define PATH_HISTFILE "plush_history"
-#define MOD_HISTDIR S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH
+#define MOD_HISTDIR 0755
+#define MOD_HISTFILE 0664
 
 /**
  * Check if the directory for the history exist
@@ -55,5 +56,6 @@ typedef struct s_hist {
 
 extern History history; /* history global variable */
 extern unsigned int HISTORY_SIZE; /* definition in history.c */
+extern int HISTORY_currentCommandIndex;
 
 #endif /* PLUSH_HISTORY */
