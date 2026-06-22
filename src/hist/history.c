@@ -153,12 +153,33 @@ void plushHistory_add_command(const char* command) {
     memcpy(history.hist[history.index], command, commandLen);
     history.hist[history.index][commandLen] = '\0';
 
+    int oldIndex = history.index;
     history.index = (history.index+1) % HISTORY_SIZE;
     if (history.hist[history.index] != NULL)
         free(history.hist[history.index]);
         
     history.hist[history.index] = (char*)malloc(PLUSH_BASE_COMMAND_LENGTH * sizeof(char));
     memset(history.hist[history.index], 0, PLUSH_BASE_COMMAND_LENGTH);
+
+    // append to history file
+    const char* envHome = getenv(VAR_HOME);
+    if (envHome == NULL || envHome[0] == '\0') {
+        plushError_print_new_warn("$HOME not set, could not save history");
+        return;
+    }
+
+    char* histFilePath = (char*)malloc(sizeof(char) * FILENAME_MAX);
+    snprintf(histFilePath, FILENAME_MAX, "%s/%s/%s", envHome, PATH_HISTDIR, PATH_HISTFILE);
+
+    history.fd = open(histFilePath, O_WRONLY | O_CREAT, MOD_HISTFILE);
+
+    if (write(history.fd, history.hist[oldIndex], strlen(history.hist[oldIndex])) < 0
+            || wrte(history.fd, "\n", 1) < 0) {
+        plushError_print_new_warn("Cannot write to history file");
+    }
+
+    close(history.fd);
+    free(histFilePath);
 
     return;
 }

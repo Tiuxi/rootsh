@@ -37,6 +37,7 @@ void plushHistory_destroy_history();
 /**
  * Add a command to the history.
  * If the previous command is the same, it doesn't add it
+ * Append the command to the history file
  * 
  * @param command   The command to add to the history
  */
@@ -44,6 +45,8 @@ void plushHistory_add_command(const char* command);
 
 /**
  * Save current history to the history file in the .config folder
+ * 
+ * /!\ Fully overwrite the history file /!\
  */
 void plushHistory_save_to_file();
 
