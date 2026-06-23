@@ -1,7 +1,7 @@
 #ifndef PLUSH_CONSTANTS
 #define PLUSH_CONSTANTS
 
-#define PLUSH_MAX_COMMAND_LENGTH 512
+#define PLUSH_BASE_COMMAND_LENGTH 32
 #define PLUSH_MAX_ARG_LENGTH 100
 #define PLUSH_MAX_ERROR_LENGTH 256
 #define VAR_ENVPATH "PATH"
@@ -11,6 +11,8 @@
 #ifndef KEY_RETURN
 #define KEY_RETURN 10
 #endif
+
+typedef char bool;
 
 #ifndef TRUE
 #define TRUE 1

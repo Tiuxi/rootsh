@@ -11,7 +11,7 @@ int main (int argc, char** argv) {
     (void) argv;
 
     int running = 1;
-    char buffer[PLUSH_MAX_COMMAND_LENGTH];
+    char buffer[500];
     int index = 0;
 
     // history
@@ -30,7 +30,7 @@ int main (int argc, char** argv) {
             // if command is empty, skip
             if (index!=0) {
                 buffer[index] = '\0';
-                if (strncmp(buffer, "exit", PLUSH_MAX_COMMAND_LENGTH) == 0)
+                if (strncmp(buffer, "exit", 500) == 0)
                     running = FALSE;
                 else {
                     plushHistory_add_command(buffer);
@@ -56,7 +56,6 @@ int main (int argc, char** argv) {
         }
     }
 
-    plushHistory_save_to_file();
     plushHistory_destroy_history();
 
     return 0;
