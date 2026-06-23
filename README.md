@@ -57,6 +57,11 @@ In this makefile, the debug flag (`-g`) is also enabled by default.
 ## Project status
 Alpha version. (working with lots of bugs and missing features)  
 
+## Acknowledgements
+The input and line editing is fully handled by the open-source [linenoise](https://github.com/antirez/linenoise) library.
+For that reason, the `linenoise.c` and `linenoise.h` files are licensed under the BSD-2 Clause instead of GPL-3.0 (see file header).  
+Go check their work !
+
 ## Contributing
 All PRs are welcome !
 - Add feature
