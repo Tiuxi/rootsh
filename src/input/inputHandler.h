@@ -6,6 +6,9 @@
 #include "hist/history.h"
 #include "exec/execCommand.h"
 
+#include <sys/select.h>
+#include <errno.h>
+
 extern bool PlushInput_MainLoopRunning;
 
 int PlushInput_main_loop();
