@@ -40,13 +40,13 @@ void PlushInput_get_input_loop() {
             }
             else if (returnValue != 0) { // char inputed
                 command = linenoiseEditFeed(&lstate);
-
-                // line editing is finished
-                if (command != linenoiseEditMore) isLineEditFinished = TRUE;
+                isLineEditFinished = (command != linenoiseEditMore);
             }
             else { // timeout call
                 /*
                 linenoiseHide(&lstate);
+
+                [Add timeout process here]
 
                 linenoiseShow(&lstate);
                 */
@@ -83,27 +83,10 @@ void PlushInput_get_input_loop() {
 
 int PlushInput_main_loop() {
     PlushInput_MainLoopRunning = TRUE;
-    //char* commandBuffer;
 
     linenoiseHistorySetMaxLen(HISTORY_SIZE);
     load_hist_to_linenoise();
 
-    /* while (PlushInput_MainLoopRunning) {
-        commandBuffer = linenoise("> ");
-
-        if (commandBuffer != NULL && commandBuffer[0] != '\0') {
-            plushHistory_add_command(commandBuffer);
-            linenoiseHistoryAdd(commandBuffer);
-
-            plushExec_execute_command(commandBuffer);
-        }
-
-        if (commandBuffer != NULL)
-            linenoiseFree(commandBuffer);
-        else {
-            PlushInput_MainLoopRunning = FALSE;
-        }
-    } */
     PlushInput_get_input_loop();
 
     return 0;
