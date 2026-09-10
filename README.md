@@ -57,6 +57,10 @@ In this makefile, the debug flag (`-g`) is also enabled by default.
 ## Project status
 Alpha version. (working with lots of bugs and missing features)  
 
+## Acknowledgements
+The input and line editing is fully handled by the open-source [linenoise](https://github.com/antirez/linenoise) library.  
+Go check their work !
+
 ## Contributing
 All PRs are welcome !
 - Add feature
@@ -65,4 +69,6 @@ All PRs are welcome !
 - Improve doc
 
 ## License
-**[GPL-3.0](LICENSE)**
+Plush is licensed under GPL-3.0 (see **[LICENSE](LICENSE)**).
+
+`linenoise.c` and `linenoise.h` are vendored from linenoise and remain under BSD-2-Clause — see the license header in those files
